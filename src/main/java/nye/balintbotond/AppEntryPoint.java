@@ -4,7 +4,7 @@ package nye.balintbotond;
  * Hello world!
  *
  */
-public class App 
+public class AppEntryPoint
 {
     public static void main( String[] args )
     {
