@@ -66,6 +66,24 @@
                     </execution>
                 </executions>
             </plugin>
+            <!--  Javadoc Plugin  -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-javadoc-plugin</artifactId>
+                <version>3.6.0</version>
+                <configuration>
+                    <source>17</source>
+                    <detectJavaApiLink>false</detectJavaApiLink>
+                    <linksource>false</linksource>
+                    <failOnError>false</failOnError>
+                </configuration>
+            </plugin>
+            <!--  Java Jxr Plugin  -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-jxr-plugin</artifactId>
+                <version>2.1</version>
+            </plugin>
         </plugins>
     </build>
 </project>
