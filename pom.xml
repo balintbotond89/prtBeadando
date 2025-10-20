@@ -82,6 +82,7 @@
                         <ruleset>category/java/bestpractices.xml</ruleset>
                         <ruleset>category/java/codestyle.xml</ruleset>
                     </rulesets>
+                    <linkXRef>false</linkXRef> <!-- XRef linkek kikapcsolva -->
                 </configuration>
                 <executions>
                     <execution>
