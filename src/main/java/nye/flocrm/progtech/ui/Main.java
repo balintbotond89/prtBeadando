@@ -6,7 +6,13 @@ package nye.flocrm.progtech.ui;
  */
 @SuppressWarnings({"PMD.SystemPrintln"})
 public class Main {
+
+    // utility osztály (ne lehessen példányosítani)
+    private Main() { }
+
     public static void main(String[] args) {
-        System.out.println("Hello World!");
+        Board board = new Board();
+        board.print();
+
     }
 }
