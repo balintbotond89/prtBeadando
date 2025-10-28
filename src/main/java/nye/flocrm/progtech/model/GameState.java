@@ -1,7 +1,7 @@
 package nye.flocrm.progtech.model;
 
 /**
- * Represents the possible states of the game.
+ * A játék lehetséges állapotai.
  */
 public enum GameState {
     IN_PROGRESS,
