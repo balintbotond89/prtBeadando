@@ -149,7 +149,6 @@
                 </executions>
             </plugin>
 
-
             <!-- Checkstyle: build-break, riport és lokális HTML -->
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>

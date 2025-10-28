@@ -1,9 +1,8 @@
-package nye.flocrm.progtech.ui;
+//Beadási határidő: december 5
 
-/**
- * Hello world!
- *
- */
+package nye.flocrm.progtech.ui;
+import nye.flocrm.progtech.model.Board;
+
 @SuppressWarnings({"PMD.SystemPrintln"})
 public class Main {
 
