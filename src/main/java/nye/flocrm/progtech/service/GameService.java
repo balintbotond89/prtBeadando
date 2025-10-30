@@ -56,7 +56,7 @@ public class GameService {
         } else {
             switchPlayer();
 
-            // If next player is AI, make AI move automatically
+            // Ha a következő játékos AI, akkor az AI automatikusan lép.
             if (!currentPlayer.isHuman() && gameState == GameState.IN_PROGRESS) {
                 makeAIMove();
             }
@@ -103,5 +103,65 @@ public class GameService {
                 }
             }
         }
+    }
+
+    /**
+     * A játékos váltást megvalósító metódus.
+     */
+    private void switchPlayer() {
+        currentPlayer = (currentPlayer == player1) ? player2 : player1;
+    }
+
+    /**
+     * Visszaállítja a játékot a kezdeti állapotrára.
+     */
+    public void resetGame() {
+        board.clear();
+        gameState = GameState.IN_PROGRESS;
+        currentPlayer = player1;
+    }
+
+    /**
+     * Megváltoztatja a játék módot és visszaállítja a kezdeti állapotára
+     */
+    public void changeGameMode(GameMode newGameMode) {
+        this.gameMode = newGameMode;
+        initializePlayers();
+        resetGame();
+    }
+
+    // Getterek:
+    public Board getBoard() {
+        return board;
+    }
+
+    public GameState getGameState() {
+        return gameState;
+    }
+
+    public Player getCurrentPlayer() {
+        return currentPlayer;
+    }
+
+    public GameMode getGameMode() {
+        return gameMode;
+    }
+
+    public Player getPlayer1() {
+        return player1;
+    }
+
+    public Player getPlayer2() {
+        return player2;
+    }
+
+    /**
+     * Az aktuális játék állapot kiírása.
+     */
+    public void printGameState() {
+        board.print();
+        System.out.println("\nCurrent player: " + currentPlayer.getName() + " (" + currentPlayer.getSymbol() + ")");
+        System.out.println("Game mode: " + gameMode.getDisplayName());
+        System.out.println("Game state: " + gameState);
     }
 }
