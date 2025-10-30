@@ -32,18 +32,10 @@ public class Main {
         System.out.println("Rakj le 5 jelet egy sorban a győzelemhez!\n");
 
         selectGameMode();
-        //gameLoop();
+        gameLoop();
 
         scanner.close();
     }
-
-    //selectGameMode
-
-    //gameLoop
-
-    //displayGameResult
-
-    //offerNewGame
 
     /**
      * Játékmód kiválasztását kezeli.
@@ -63,6 +55,52 @@ public class Main {
         this.gameService = new GameService(selectedMode);
         System.out.println("\nKiválasztva: " + selectedMode.getDisplayName());
     }
+
+    /**
+     * A játék fő ciklusát vezérli, amíg a játék aktív állapotban van.
+     *
+     * A metódus felelős a játék folyamatos működtetéséért.
+     * Megjeleníti a játékállapotot.
+     * Ellenőrzi a befejezési feltételeket.
+     * Kezeli az emberi játékos bemeneteit.
+     * Érvényesíti a lépéseket.
+     */
+    private void gameLoop() {
+        while (true) {
+            gameService.printGameState();
+
+            if (gameService.getGameState() != GameState.IN_PROGRESS) {
+                break;
+            }
+
+            // Ha a játékos ember, bemenetet vár
+            if (gameService.getCurrentPlayer().isHuman()) {
+                System.out.print("Lép: " + gameService.getCurrentPlayer().getName() +
+                        " (" + gameService.getCurrentPlayer().getSymbol() +
+                        "), add meg a lépésed (sor oszlop): ");
+
+                try {
+                    int row = scanner.nextInt() - 1;
+                    int col = scanner.nextInt() - 1;
+                    scanner.nextLine(); // Puffer űrítése
+
+                    if (!gameService.makeMove(row, col)) {
+                        System.out.println("Érvénytelen lépes! Próbáld újra.");
+                    }
+                } catch (Exception e) {
+                    System.out.println("Érvénytelen bevitel! Csak számokat adhatsz meg.");
+                    scanner.nextLine(); // Érvénytelen bevitel űrítése
+                }
+            }
+        }
+
+        //displayGameResult();
+        //offerNewGame();
+    }
+
+    //displayGameResult
+
+    //offerNewGame
 
     /**
      * Felhasználói menü választást olvas be és érvényesít a konzolról.

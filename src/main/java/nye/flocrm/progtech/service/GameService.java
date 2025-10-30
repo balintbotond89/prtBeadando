@@ -66,8 +66,7 @@ public class GameService {
     }
 
     /**
-     * Végrehajt egy automatikus lépést a gépi játékos.
-     *
+     * Az AI végrehajt egy automatikus lépést.
      * A metódus csak akkor fut le, ha a játék éppen folyamatban van és az aktuális játékos
      * egy AIPlayer példány. Az AI először megpróbálja megtalálni a nyerő lépést, ha ez nem
      * sikerül, akkor az ellenfél nyerő lépését próbálja blokkolni, végül pedig véletlenszerűen
@@ -77,7 +76,6 @@ public class GameService {
      * - Ellenőrzi, hogy az AI lépése nyerő pozíciót hozott-e létre
      * - Megállapítja, hogy a tábla megtelt-e (döntetlen állapot)
      * - Ha a játék még folyamatban van, visszavált az emberi játékosra
-     *
      * A folyamat során konzolüzenet jelzi a felhasználónak, hogy az AI éppen gondolkodik.
      */
     public void makeAIMove() {
@@ -160,8 +158,8 @@ public class GameService {
      */
     public void printGameState() {
         board.print();
-        System.out.println("\nCurrent player: " + currentPlayer.getName() + " (" + currentPlayer.getSymbol() + ")");
-        System.out.println("Game mode: " + gameMode.getDisplayName());
-        System.out.println("Game state: " + gameState);
+        System.out.println("\nJelenlegi játékos: " + currentPlayer.getName() + " (" + currentPlayer.getSymbol() + ")");
+        System.out.println("Játék mód: " + gameMode.getDisplayName());
+        System.out.println("Játék állapot: " + gameState);
     }
 }
