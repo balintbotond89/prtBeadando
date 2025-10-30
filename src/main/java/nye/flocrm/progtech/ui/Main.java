@@ -31,7 +31,7 @@ public class Main {
         System.out.println("Isten hozott az amőba játékban!");
         System.out.println("Rakj le 5 jelet egy sorban a győzelemhez!\n");
 
-        //selectGameMode();
+        selectGameMode();
         //gameLoop();
 
         scanner.close();
@@ -45,7 +45,24 @@ public class Main {
 
     //offerNewGame
 
-    //Select game mode
+    /**
+     * Játékmód kiválasztását kezeli.
+     * A metódus felkínálja a felhasználónak a rendelkezésre álló játékmódokat,
+     * beolvassa a választást, érvényesíti azt, majd inicializálja a játékot
+     * a kiválasztott mód alapján.
+     */
+    private void selectGameMode() {
+        System.out.println("Játékmód kiválasztása:");
+        System.out.println("1. " + GameMode.HUMAN_VS_HUMAN.getDisplayName());
+        System.out.println("2. " + GameMode.HUMAN_VS_AI.getDisplayName());
+        System.out.print("Kérlek válassz (1-2): ");
+
+        int choice = getMenuChoice(1, 2);
+        GameMode selectedMode = (choice == 1) ? GameMode.HUMAN_VS_HUMAN : GameMode.HUMAN_VS_AI;
+
+        this.gameService = new GameService(selectedMode);
+        System.out.println("\nKiválasztva: " + selectedMode.getDisplayName());
+    }
 
     /**
      * Felhasználói menü választást olvas be és érvényesít a konzolról.
