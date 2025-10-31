@@ -14,7 +14,9 @@ public class WinChecker {
      */
     public boolean checkWin(Board board, int lastRow, int lastCol) {
         char symbol = board.getSymbolAt(lastRow, lastCol);
-        if (symbol == '.') return false;
+        if (symbol == '.') {
+            return false;
+        }
 
         return checkHorizontal(board, lastRow, lastCol, symbol) ||
                 checkVertical(board, lastRow, lastCol, symbol) ||

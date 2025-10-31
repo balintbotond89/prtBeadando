@@ -1,6 +1,11 @@
 package nye.flocrm.progtech.service;
 
-import nye.flocrm.progtech.model.*;
+import nye.flocrm.progtech.model.AIPlayer;
+import nye.flocrm.progtech.model.Board;
+import nye.flocrm.progtech.model.GameMode;
+import nye.flocrm.progtech.model.GameState;
+import nye.flocrm.progtech.model.HumanPlayer;
+import nye.flocrm.progtech.model.Player;
 
 /**
  * A fő játékmódokat megvalósító játékszolgáltatás.
@@ -33,6 +38,8 @@ public class GameService {
                 this.player1 = new HumanPlayer("Ember", 'X');
                 this.player2 = new AIPlayer("Számítógép", 'O', 'X');
                 break;
+            default:
+                throw new IllegalArgumentException("Ismeretlen játékmód: " + gameMode);
         }
         this.currentPlayer = player1;
     }

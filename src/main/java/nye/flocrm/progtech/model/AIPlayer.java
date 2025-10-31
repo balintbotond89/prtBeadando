@@ -103,7 +103,8 @@ public class AIPlayer implements Player {
      */
     private void makeRandomMove(Board board) {
         // Csak egy véletlen mezőt válasszon és egy jelet helyezzen rá
-        int row, col;
+        int row;
+        int col;
         do {
             row = random.nextInt(board.getSize());
             col = random.nextInt(board.getSize());
