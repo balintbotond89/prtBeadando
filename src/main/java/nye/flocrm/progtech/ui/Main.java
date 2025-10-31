@@ -3,9 +3,9 @@
 package nye.flocrm.progtech.ui;
 
 import nye.flocrm.progtech.service.LoggerService;
+
 /**
- * Az amőba játék fő alkalmazás osztálya.
- * Csak az alkalmazás indításáért felelős.
+ * Fő osztály az alkalmazás indításához.
  */
 @SuppressWarnings({"PMD.SystemPrintln"})
 public class Main {
@@ -16,8 +16,6 @@ public class Main {
     /**
      * Belépési pont az alkalmazáshoz.
      * Inicializálja és elindítja a játékot.
-     *
-     * @param args parancssori argumentumok
      */
     public static void main(String[] args) {
         try {

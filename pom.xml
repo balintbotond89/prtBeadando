@@ -7,8 +7,8 @@
   <version>1.0-SNAPSHOT</version>
   <packaging>jar</packaging>
 
-  <name>prtBeadando</name>
-  <url>http://maven.apache.org</url>
+  <name>Amoba</name>
+  <description>Egyszerű konzolos Amőba játék</description>
 
     <!-- Nyelvi beállítások -->
     <properties>

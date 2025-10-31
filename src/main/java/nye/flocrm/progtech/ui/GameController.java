@@ -1,12 +1,12 @@
 package nye.flocrm.progtech.ui;
 
-import nye.flocrm.progtech.service.GameService;
+import java.util.Scanner;
+
+import nye.flocrm.progtech.model.Board;
 import nye.flocrm.progtech.model.GameMode;
 import nye.flocrm.progtech.model.GameState;
-import nye.flocrm.progtech.model.Board;
+import nye.flocrm.progtech.service.GameService;
 import nye.flocrm.progtech.service.LoggerService;
-
-import java.util.Scanner;
 
 /**
  * A játék vezérléséért felelős osztály.
