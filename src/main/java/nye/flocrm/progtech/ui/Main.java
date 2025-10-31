@@ -2,126 +2,36 @@
 
 package nye.flocrm.progtech.ui;
 
-import nye.flocrm.progtech.service.GameService;
-import nye.flocrm.progtech.model.GameMode;
-import nye.flocrm.progtech.model.GameState;
-
-import java.util.Scanner;
-
+import nye.flocrm.progtech.service.LoggerService;
 /**
  * Az amőba játék fő alkalmazás osztálya.
+ * Csak az alkalmazás indításáért felelős.
  */
-
 @SuppressWarnings({"PMD.SystemPrintln"})
 public class Main {
-
-    private GameService gameService;
-    private final Scanner scanner;
-
-    public Main() {
-        this.scanner = new Scanner(System.in);
-    }
-
-    public static void main(String[] args) {
-        new Main().run();
-    }
-
-    //run
-    public void run() {
-        System.out.println("Isten hozott az amőba játékban!");
-        System.out.println("Rakj le 5 jelet egy sorban a győzelemhez!\n");
-
-        selectGameMode();
-        gameLoop();
-
-        scanner.close();
+    private Main() {
+        // utility osztály - nem példányosítható
     }
 
     /**
-     * Játékmód kiválasztását kezeli.
-     * A metódus felkínálja a felhasználónak a rendelkezésre álló játékmódokat,
-     * beolvassa a választást, érvényesíti azt, majd inicializálja a játékot
-     * a kiválasztott mód alapján.
-     */
-    private void selectGameMode() {
-        System.out.println("Játékmód kiválasztása:");
-        System.out.println("1. " + GameMode.HUMAN_VS_HUMAN.getDisplayName());
-        System.out.println("2. " + GameMode.HUMAN_VS_AI.getDisplayName());
-        System.out.print("Kérlek válassz (1-2): ");
-
-        int choice = getMenuChoice(1, 2);
-        GameMode selectedMode = (choice == 1) ? GameMode.HUMAN_VS_HUMAN : GameMode.HUMAN_VS_AI;
-
-        this.gameService = new GameService(selectedMode);
-        System.out.println("\nKiválasztva: " + selectedMode.getDisplayName());
-    }
-
-    /**
-     * A játék fő ciklusát vezérli, amíg a játék aktív állapotban van.
+     * Belépési pont az alkalmazáshoz.
+     * Inicializálja és elindítja a játékot.
      *
-     * A metódus felelős a játék folyamatos működtetéséért.
-     * Megjeleníti a játékállapotot.
-     * Ellenőrzi a befejezési feltételeket.
-     * Kezeli az emberi játékos bemeneteit.
-     * Érvényesíti a lépéseket.
+     * @param args parancssori argumentumok
      */
-    private void gameLoop() {
-        while (true) {
-            gameService.printGameState();
+    public static void main(String[] args) {
+        try {
+            LoggerService.info("Amőba játék indítása...");
 
-            if (gameService.getGameState() != GameState.IN_PROGRESS) {
-                break;
-            }
+            GameController controller = new GameController();
+            controller.run();
 
-            // Ha a játékos ember, bemenetet vár
-            if (gameService.getCurrentPlayer().isHuman()) {
-                System.out.print("Lép: " + gameService.getCurrentPlayer().getName() +
-                        " (" + gameService.getCurrentPlayer().getSymbol() +
-                        "), add meg a lépésed (sor oszlop): ");
+            LoggerService.info("Amőba játék leállítva.");
 
-                try {
-                    int row = scanner.nextInt() - 1;
-                    int col = scanner.nextInt() - 1;
-                    scanner.nextLine(); // Puffer űrítése
-
-                    if (!gameService.makeMove(row, col)) {
-                        System.out.println("Érvénytelen lépes! Próbáld újra.");
-                    }
-                } catch (Exception e) {
-                    System.out.println("Érvénytelen bevitel! Csak számokat adhatsz meg.");
-                    scanner.nextLine(); // Érvénytelen bevitel űrítése
-                }
-            }
-        }
-
-        //displayGameResult();
-        //offerNewGame();
-    }
-
-    //displayGameResult
-
-    //offerNewGame
-
-    /**
-     * Felhasználói menü választást olvas be és érvényesít a konzolról.
-     * A metódus egy egyszerű menürendszert valosít meg, ahol
-     * a felhasználónak egy előre meghatározott tartományból kell választania.
-     * A metódus addig kér be újabb inputot, amíg a felhasználó érvényes számot nem ad meg
-     * a megadott határok között.
-     */
-    private int getMenuChoice(int min, int max) {
-        while (true) {
-            try {
-                int choice = scanner.nextInt();
-                scanner.nextLine(); // puffer űrítése
-                if (choice >= min && choice <= max) {
-                    return choice;
-                }
-                System.out.print("Kérem adjon meg egy számot a  " + min + " és " + max + "között: ");
-            } catch (Exception e) {
-                System.out.print("Érvénytelen bevitel! Kérem adjon meg egy érvényes számot: ");
-                scanner.nextLine(); // Helytelen bemenet elvetése
-            }
+        } catch (Exception e) {
+            LoggerService.severe("Váratlan hiba történt az alkalmazás indítása során", e);
+            System.err.println("Váratlan hiba történt. További részletek a naplófájlban.");
         }
     }
+
 }
