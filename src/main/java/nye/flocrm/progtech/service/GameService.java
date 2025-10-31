@@ -26,7 +26,7 @@ public class GameService {
     private void initializePlayers() {
         switch (gameMode) {
             case HUMAN_VS_HUMAN:
-                this.player1 = new HumanPlayer("Játkos 1", 'X');
+                this.player1 = new HumanPlayer("Játékos 1", 'X');
                 this.player2 = new HumanPlayer("Játékos 2", 'O');
                 break;
             case HUMAN_VS_AI:

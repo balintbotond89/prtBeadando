@@ -24,6 +24,11 @@ public final class Board {
         clear();
     }
 
+    // Getter a Board méretét adja vissza
+    public int getSize() {
+        return SIZE;
+    }
+
     /**
      * Törli a táblát, és minden cellát üresre állít.
      */
