@@ -71,7 +71,6 @@ public class GameService {
      * egy AIPlayer példány. Az AI először megpróbálja megtalálni a nyerő lépést, ha ez nem
      * sikerül, akkor az ellenfél nyerő lépését próbálja blokkolni, végül pedig véletlenszerűen
      * választ egy érvényes pozíciót.
-     *
      * A lépés végrehajtása után a metódus átvizsgálja a játék állapotát:
      * - Ellenőrzi, hogy az AI lépése nyerő pozíciót hozott-e létre
      * - Megállapítja, hogy a tábla megtelt-e (döntetlen állapot)
@@ -80,7 +79,7 @@ public class GameService {
      */
     public void makeAIMove() {
         if (currentPlayer instanceof AIPlayer && gameState == GameState.IN_PROGRESS) {
-            System.out.println("\n" + currentPlayer.getName() + " tervezás...");
+            System.out.println("\n" + currentPlayer.getName() + " tervezés...");
             currentPlayer.makeMove(board);
 
             // Find where the AI placed its symbol

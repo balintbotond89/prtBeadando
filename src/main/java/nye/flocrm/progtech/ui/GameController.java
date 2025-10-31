@@ -3,6 +3,8 @@ package nye.flocrm.progtech.ui;
 import nye.flocrm.progtech.service.GameService;
 import nye.flocrm.progtech.model.GameMode;
 import nye.flocrm.progtech.model.GameState;
+import nye.flocrm.progtech.model.Board;
+import nye.flocrm.progtech.service.LoggerService;
 
 import java.util.Scanner;
 
@@ -41,6 +43,9 @@ public class GameController {
         System.out.println("\nKiválasztva: " + selectedMode.getDisplayName());
     }
 
+    /**
+     * A játék fő ciklusát vezérli, amely a játékmenet magja.
+     */
     private void gameLoop() {
         while (true) {
             gameService.printGameState();
@@ -57,27 +62,77 @@ public class GameController {
         offerNewGame();
     }
 
+    /**
+     * Az emberi játékos lépésének kezelését végzi.
+     */
     private void handleHumanMove() {
-        System.out.print("Lép: " + gameService.getCurrentPlayer().getName() +
-                " (" + gameService.getCurrentPlayer().getSymbol() +
-                "), add meg a lépésed (sor oszlop): ");
+        String playerName = gameService.getCurrentPlayer().getName();
+        char playerSymbol = gameService.getCurrentPlayer().getSymbol();
 
-        try {
-            int row = scanner.nextInt() - 1;
-            int col = scanner.nextInt() - 1;
-            scanner.nextLine();
+        boolean validMove = false;
 
-            if (!gameService.makeMove(row, col)) {
-                System.out.println("Érvénytelen lépes! Próbáld újra.");
+        while (!validMove) {
+
+            System.out.print("Lép: " + playerName +
+                    " (" + playerSymbol +
+                    "), add meg a lépésed (sor oszlop, 1-10): ");
+
+            try {
+                // Egy sor beolvasása és feldolgozása
+                String inputLine = scanner.nextLine().trim();
+
+                // Üres bemenet ellenőrzése
+                if (inputLine.isEmpty()) {
+                    System.out.println("Üres bemenet! Kérlek adj meg két számot (pl: 3 5).");
+                    System.out.println("Nyomj Entert az újrapróbálkozáshoz...");
+                    continue;
+                }
+
+                // Szóközzel elválasztva részekre bontás
+                String[] parts = inputLine.split("\\s+");
+
+                // Pontosan két szám ellenőrzése
+                if (parts.length != 2) {
+                    System.out.println("Hiányos bemenet! Két számot kell megadni szóközzel elválasztva (pl: 3 5).");
+                    System.out.println("Megadott: '" + inputLine + "' (" + parts.length + " rész)");
+                    System.out.println("Nyomj Entert az újrapróbálkozáshoz...");
+                    continue;
+                }
+
+                // Számok konvertálása
+                int row = Integer.parseInt(parts[0]) - 1;
+                int col = Integer.parseInt(parts[1]) - 1;
+
+                // Tartomány ellenőrzése
+                if (row < 0 || row >= Board.SIZE || col < 0 || col >= Board.SIZE) {
+                    System.out.println("Érvénytelen tartomány! Csak 1 és " + Board.SIZE + " közötti számokat adj meg.");
+                    System.out.println("Megadott: " + (row + 1) + " " + (col + 1));
+                    System.out.println("Nyomj Entert az újrapróbálkozáshoz...");
+                    continue;
+                }
+
+                // Lépés végrehajtása
+                if (gameService.makeMove(row, col)) {
+                    validMove = true; // Sikeres lépés, kilépünk a ciklusból
+                } else {
+                    System.out.println("Érvénytelen lépés! A mező már foglalt!");
+                    System.out.println("Nyomj Entert az újrapróbálkozáshoz...");
+                }
+
+            } catch (NumberFormatException e) {
+                System.out.println("Érvénytelen bevitel! Csak számokat adhatsz meg (1-" + Board.SIZE + ").");
+                System.out.println("Példa: '3 5' vagy '10 2'");
+                System.out.println("Nyomj Entert az újrapróbálkozáshoz...");
+            } catch (Exception e) {
+                System.out.println("Váratlan hiba történt. Próbáld újra.");
+                System.out.println("Nyomj Entert az újrapróbálkozáshoz...");
+                LoggerService.warning("Váratlan hiba handleHumanMove-ban: " + e.getMessage());
             }
-        } catch (Exception e) {
-            System.out.println("Érvénytelen bevitel! Csak számokat adhatsz meg.");
-            scanner.nextLine();
         }
     }
 
     private void displayGameResult() {
-        // Implementáld a játék eredmény megjelenítését
+        // Implementálja a játék eredmény megjelenítését
         GameState state = gameService.getGameState();
         if (state == GameState.PLAYER_X_WON) {
             System.out.println("X játékos nyert!");

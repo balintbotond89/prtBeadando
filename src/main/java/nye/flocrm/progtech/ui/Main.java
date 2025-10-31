@@ -33,5 +33,4 @@ public class Main {
             System.err.println("Váratlan hiba történt. További részletek a naplófájlban.");
         }
     }
-
 }
