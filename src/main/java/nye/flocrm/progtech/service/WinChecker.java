@@ -10,7 +10,23 @@ public class WinChecker {
     private static final int WINNING_LENGTH = 5;
 
     /**
-     * Ellenőrzés, hogy az utolsó lépés nyertes-e?
+     * Teljes tábla ellenőrzése minden szimbólumra
+     */
+    public boolean checkAnyWin(Board board) {
+        // Ellenőrizzük minden nem üres mezőre
+        for (int row = 0; row < Board.SIZE; row++) {
+            for (int col = 0; col < Board.SIZE; col++) {
+                char symbol = board.getSymbolAt(row, col);
+                if (symbol != '.' && checkWin(board, row, col)) {
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+
+    /**
+     * checkAnyWin Segédfüggvénye
      */
     public boolean checkWin(Board board, int lastRow, int lastCol) {
         char symbol = board.getSymbolAt(lastRow, lastCol);
@@ -22,6 +38,21 @@ public class WinChecker {
                 checkVertical(board, lastRow, lastCol, symbol) ||
                 checkDiagonal(board, lastRow, lastCol, symbol) ||
                 checkAntiDiagonal(board, lastRow, lastCol, symbol);
+    }
+
+    /**
+     * Megadja, hogy egy adott játékos nyert-e
+     */
+    public boolean checkWinForPlayer(Board board, char playerSymbol) {
+        for (int row = 0; row < Board.SIZE; row++) {
+            for (int col = 0; col < Board.SIZE; col++) {
+                if (board.getSymbolAt(row, col) == playerSymbol &&
+                        checkWin(board, row, col)) {
+                    return true;
+                }
+            }
+        }
+        return false;
     }
 
     // Vízszintes ellenőrzés
@@ -46,15 +77,6 @@ public class WinChecker {
 
     /**
      * Megszámolja, hány azonos szimbólum van egy vonalban mindkét irányba.
-     * A kezdőpontot is beleszámolja, majd hozzáadja a bal/jobb irányokban találtakat.
-     *
-     * @param board a játéktábla
-     * @param row a kezdő sor indexe
-     * @param col a kezdő oszlop indexe
-     * @param symbol a keresett szimbólum ('X' vagy 'O')
-     * @param rowDir az első irány sor változása
-     * @param colDir az első irány oszlop változása
-     * @return az összes egymás mellett lévő azonos szimbólum száma a teljes vonalban
      */
     private int countConsecutive(Board board, int row, int col, char symbol, int rowDir, int colDir) {
         int count = 1;

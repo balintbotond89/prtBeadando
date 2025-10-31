@@ -56,15 +56,14 @@ public class GameService {
             return false;
         }
 
-        if (winChecker.checkWin(board, row, col)) {
-            gameState = (currentPlayer.getSymbol() == 'X') ? GameState.PLAYER_X_WON : GameState.PLAYER_O_WON;
-        } else if (board.isFull()) {
-            gameState = GameState.DRAW;
-        } else {
+        // Ellenőrizzük, hogy valaki nyert-e
+        checkForWinner();
+
+        if (gameState == GameState.IN_PROGRESS) {
             switchPlayer();
 
             // Ha a következő játékos AI, akkor az AI automatikusan lép.
-            if (!currentPlayer.isHuman() && gameState == GameState.IN_PROGRESS) {
+            if (!currentPlayer.isHuman()) {
                 makeAIMove();
             }
         }
@@ -79,32 +78,18 @@ public class GameService {
      * sikerül, akkor az ellenfél nyerő lépését próbálja blokkolni, végül pedig véletlenszerűen
      * választ egy érvényes pozíciót.
      * A lépés végrehajtása után a metódus átvizsgálja a játék állapotát:
-     * - Ellenőrzi, hogy az AI lépése nyerő pozíciót hozott-e létre
-     * - Megállapítja, hogy a tábla megtelt-e (döntetlen állapot)
-     * - Ha a játék még folyamatban van, visszavált az emberi játékosra
      * A folyamat során konzolüzenet jelzi a felhasználónak, hogy az AI éppen gondolkodik.
      */
     public void makeAIMove() {
         if (currentPlayer instanceof AIPlayer && gameState == GameState.IN_PROGRESS) {
-            System.out.println("\n" + currentPlayer.getName() + " tervezés...");
+            System.out.println("\n" + currentPlayer.getName() + " lépett...");
             currentPlayer.makeMove(board);
 
-            // Find where the AI placed its symbol
-            for (int row = 0; row < Board.SIZE; row++) {
-                for (int col = 0; col < Board.SIZE; col++) {
-                    if (board.getSymbolAt(row, col) == currentPlayer.getSymbol()) {
-                        // Check if this move resulted in a win
-                        if (winChecker.checkWin(board, row, col)) {
-                            gameState = (currentPlayer.getSymbol() == 'X') ?
-                                    GameState.PLAYER_X_WON : GameState.PLAYER_O_WON;
-                        } else if (board.isFull()) {
-                            gameState = GameState.DRAW;
-                        } else {
-                            switchPlayer();
-                        }
-                        return;
-                    }
-                }
+            // Ellenőrizzük, hogy az AI nyert-e
+            checkForWinner();
+
+            if (gameState == GameState.IN_PROGRESS) {
+                switchPlayer();
             }
         }
     }
@@ -134,6 +119,42 @@ public class GameService {
         resetGame();
     }
 
+    /**
+     * Az aktuális játék állapot kiírása.
+     */
+    public void printGameState() {
+        board.print();
+        System.out.println("\nJelenlegi játékos: " + currentPlayer.getName() + " (" + currentPlayer.getSymbol() + ")");
+        System.out.println("Játék mód: " + gameMode.getDisplayName());
+
+        // Játék állapot megjelenítése játékos nevekkel
+        String stateDisplay;
+        switch (gameState) {
+            case PLAYER_X_WON:
+                stateDisplay = player1.getName() + " nyert (Szimbólum: X)";
+                break;
+            case PLAYER_O_WON:
+                stateDisplay = player2.getName() + " nyert (Szimbólum: O)";
+                break;
+            case DRAW:
+                stateDisplay = "Döntetlen";
+                break;
+            default:
+                stateDisplay = "Játék folyamatban";
+        }
+        System.out.println("Játék állapot: " + stateDisplay);
+    }
+
+    public void checkForWinner() {
+        if (winChecker.checkWinForPlayer(board, 'X')) {
+            gameState = GameState.PLAYER_X_WON;
+        } else if (winChecker.checkWinForPlayer(board, 'O')) {
+            gameState = GameState.PLAYER_O_WON;
+        } else if (board.isFull()) {
+            gameState = GameState.DRAW;
+        }
+    }
+
     // Getterek:
     public Board getBoard() {
         return board;
@@ -157,15 +178,5 @@ public class GameService {
 
     public Player getPlayer2() {
         return player2;
-    }
-
-    /**
-     * Az aktuális játék állapot kiírása.
-     */
-    public void printGameState() {
-        board.print();
-        System.out.println("\nJelenlegi játékos: " + currentPlayer.getName() + " (" + currentPlayer.getSymbol() + ")");
-        System.out.println("Játék mód: " + gameMode.getDisplayName());
-        System.out.println("Játék állapot: " + gameState);
     }
 }

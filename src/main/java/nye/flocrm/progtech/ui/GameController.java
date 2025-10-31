@@ -24,8 +24,9 @@ public class GameController {
         System.out.println("Isten hozott az amőba játékban!");
         System.out.println("Rakj le 5 jelet egy sorban a győzelemhez!\n");
 
-        selectGameMode();
-        gameLoop();
+        selectGameMode(); // Játékmód kiválasztása
+        getPlayerNames(); // Játékos nevek bekérése
+        gameLoop(); //Játék vezérlő
 
         scanner.close();
     }
@@ -44,6 +45,50 @@ public class GameController {
     }
 
     /**
+     * Játékos nevek bekérése a kiválasztott játékmód alapján
+     */
+    private void getPlayerNames() {
+        System.out.println("\nJátékosok: ");
+
+        // Első játékos neve (mindig emberi játékos)
+        String player1Name = getPlayerName("első");
+        gameService.getPlayer1().setName(player1Name);
+
+        // Második játékos neve csak HUMAN_VS_HUMAN módban kérjük be
+        if (gameService.getGameMode() == GameMode.HUMAN_VS_HUMAN) {
+            String player2Name = getPlayerName("második");
+            gameService.getPlayer2().setName(player2Name);  // MÓDOSÍTÁS: itt is setName
+        }
+
+        System.out.println("\nJátékosok beállítva:");
+        System.out.println("1. játékos: " + gameService.getPlayer1().getName());
+        System.out.println("2. játékos: " + gameService.getPlayer2().getName());
+        System.out.println();
+    }
+
+    /**
+     * Egy játékos nevének bekérése
+     */
+    private String getPlayerName(String playerNumber) {
+        while (true) {
+            System.out.print(playerNumber + " játékos neve: ");
+            String name = scanner.nextLine().trim();
+
+            if (name.isEmpty()) {
+                System.out.println("A név nem lehet üres! Kérlek adj meg egy nevet.");
+                continue;
+            }
+
+            if (name.length() > 20) {
+                System.out.println("A név túl hosszú! Maximum 20 karakter lehet.");
+                continue;
+            }
+
+            return name;
+        }
+    }
+
+    /**
      * A játék fő ciklusát vezérli, amely a játékmenet magja.
      */
     private void gameLoop() {
@@ -58,7 +103,6 @@ public class GameController {
                 handleHumanMove();
             }
         }
-        displayGameResult();
         offerNewGame();
     }
 
@@ -75,7 +119,7 @@ public class GameController {
 
             System.out.print("Lép: " + playerName +
                     " (" + playerSymbol +
-                    "), add meg a lépésed (sor oszlop, 1-10): ");
+                    "), add meg a lépésed (sor oszlop): ");
 
             try {
                 // Egy sor beolvasása és feldolgozása
@@ -128,18 +172,6 @@ public class GameController {
                 System.out.println("Nyomj Entert az újrapróbálkozáshoz...");
                 LoggerService.warning("Váratlan hiba handleHumanMove-ban: " + e.getMessage());
             }
-        }
-    }
-
-    private void displayGameResult() {
-        // Implementálja a játék eredmény megjelenítését
-        GameState state = gameService.getGameState();
-        if (state == GameState.PLAYER_X_WON) {
-            System.out.println("X játékos nyert!");
-        } else if (state == GameState.PLAYER_O_WON) {
-            System.out.println("O játékos nyert!");
-        } else {
-            System.out.println("Döntetlen!");
         }
     }
 

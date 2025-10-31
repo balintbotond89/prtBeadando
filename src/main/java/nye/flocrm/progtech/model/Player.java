@@ -7,6 +7,8 @@ public interface Player {
 
     String getName();
 
+    void setName(String name);  // Emberi játékos neve
+
     char getSymbol();
 
     void makeMove(Board board);

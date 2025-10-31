@@ -29,6 +29,11 @@ public class AIPlayer implements Player {
     }
 
     @Override
+    public void setName(String name) {
+        // Nem csinál semmit - AI neve fix
+    }
+
+    @Override
     public char getSymbol() {
         return symbol;
     }

@@ -4,7 +4,7 @@ package nye.flocrm.progtech.model;
  * Az emberi játékos (Human player) implementációja.
  */
 public class HumanPlayer implements Player {
-    private final String name;
+    private String name;
     private final char symbol;
 
     public HumanPlayer(String name, char symbol) {
@@ -15,6 +15,14 @@ public class HumanPlayer implements Player {
     @Override
     public String getName() {
         return name;
+    }
+
+    @Override
+    public void setName(String name) {
+        if (name != null && !name.trim().isEmpty()) {
+            this.name = name.trim();
+        }
+        // Ha üres a név, marad a régi név
     }
 
     @Override
