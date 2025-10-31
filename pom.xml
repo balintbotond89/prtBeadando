@@ -77,6 +77,20 @@
     <!-- Build (compiler + pluginok) -->
     <build>
         <plugins>
+            <!-- JAR plugin -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-jar-plugin</artifactId>
+                <version>3.3.0</version>
+                <configuration>
+                    <archive>
+                        <manifest>
+                            <mainClass>nye.flocrm.progtech.ui.Main</mainClass>
+                        </manifest>
+                    </archive>
+                </configuration>
+            </plugin>
+
             <!-- Fordító -->
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>

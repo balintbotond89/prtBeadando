@@ -1,7 +1,9 @@
 package nye.flocrm.progtech.model;
 
-import nye.flocrm.progtech.service.WinChecker;
 import java.util.Random;
+
+import nye.flocrm.progtech.service.WinChecker;
+
 
 /**
  * AI játékos egyszerű játék mechanizmussal.
