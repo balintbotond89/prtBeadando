@@ -8,7 +8,8 @@ import nye.flocrm.progtech.service.WinChecker;
 /**
  * AI játékos egyszerű játék mechanizmussal.
  */
-public class AIPlayer implements Player {
+public class
+AIPlayer implements Player {
     private final String name;
     private final char symbol;
     private final char opponentSymbol;
