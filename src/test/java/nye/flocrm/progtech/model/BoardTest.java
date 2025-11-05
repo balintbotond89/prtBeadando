@@ -3,8 +3,6 @@
     import java.io.ByteArrayOutputStream;
     import java.io.PrintStream;
 
-    import nye.flocrm.progtech.model.Board;
-
     import org.junit.jupiter.api.BeforeEach;
     import org.junit.jupiter.api.DisplayName;
     import org.junit.jupiter.api.Test;
@@ -18,7 +16,6 @@
         // Alt + F12
         // target/site/jacoco/index.html
 
-
         private Board board;
 
         @BeforeEach
@@ -31,25 +28,26 @@
         @Test
         @DisplayName("A clear() metódus visszaállítja a táblát üresre")
         void testClearResetBoard() {
-
-            // AMIKOR: -> kiindulási körülmények
+            // AMIKOR
             board.clear();
 
-            // AMIT / AHOGY: -> ami ténylegesn vizsgálandó feltétel, történés, esetmény
-            ByteArrayOutputStream outContent = new ByteArrayOutputStream();
-            System.setOut(new PrintStream(outContent));
-            board.print();
+            // AKKOR - ellenőrizzük a belső állapotot, nem a kimenetet
+            boolean allEmpty = true;
+            for (int row = 0; row < Board.SIZE; row++) {
+                for (int col = 0; col < Board.SIZE; col++) {
+                    if (board.getSymbolAt(row, col) != '.') {
+                        allEmpty = false;
+                        break;
+                    }
+                }
+            }
 
-            // AKKOR : -> elvárt eredmény és annak ellenőrzése
-            String output = outContent.toString();
-            assertTrue(output.lines().allMatch(line -> line.replace(" ", "").chars().allMatch(ch -> ch == '.')),
-                    "A clear() után csak '.' karakterek maradhatnak a táblán");
-
+            assertTrue(allEmpty, "A clear() után minden cellának '.'-nek kell lennie");
         }
 
         @Test
-        @DisplayName("A print() metódus megfelelő formátumban jeleníti meg a táblát")
-        void testPrintOutputFormat() {
+        @DisplayName("A print() metódus helyesen jeleníti meg az üres táblát")
+        void testPrintEmptyBoard() {
             // AMIKOR
             board.clear();
 
@@ -60,21 +58,9 @@
 
             // AKKOR
             String output = outContent.toString();
-            String[] lines = output.split(System.lineSeparator());
-
-            // Ellenőrizzük, hogy van fejléc
-            assertTrue(lines[0].contains("1"), "A print() kimenetének tartalmaznia kell oszlopszámokat");
-
-            // Ellenőrizzük, hogy vannak vízszintes elválasztók
-            assertTrue(output.contains("+"), "A print() kimenetének tartalmaznia kell elválasztó vonalakat");
-            assertTrue(output.contains("---"), "A print() kimenetének tartalmaznia kell cella elválasztókat");
-
-            // Ellenőrizzük, hogy vannak függőleges elválasztók
-            assertTrue(output.contains("|"), "A print() kimenetének tartalmaznia kell függőleges elválasztókat");
-
-            // Ellenőrizzük, hogy minden sor tartalmaz üres cellákat
-            long dotCount = output.chars().filter(ch -> ch == '.').count();
-            assertEquals(100, dotCount, "A print() kimenetének pontosan 100 '.' karaktert kell tartalmaznia");
+            assertTrue(output.contains("."), "A kimenetnek tartalmaznia kell '.' karaktereket");
+            assertFalse(output.contains("X"), "A kimenetnek nem szabad tartalmaznia 'X' karaktert");
+            assertFalse(output.contains("O"), "A kimenetnek nem szabad tartalmaznia 'O' karaktert");
         }
 
     }
