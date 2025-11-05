@@ -11,7 +11,6 @@
   <description>Egyszerű konzolos Amőba játék</description>
 
     <!-- Nyelvi beállítások -->
-
     <properties>
         <java.version>21</java.version>
         <maven.compiler.source>21</maven.compiler.source>
@@ -72,7 +71,6 @@
             <artifactId>sqlite-jdbc</artifactId>
             <version>3.46.0.0</version>
         </dependency>
-
     </dependencies>
 
     <!-- Build (compiler + pluginok) -->
