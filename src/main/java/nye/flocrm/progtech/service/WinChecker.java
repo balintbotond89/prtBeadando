@@ -10,22 +10,6 @@ public class WinChecker {
     private static final int WINNING_LENGTH = 5;
 
     /**
-     * Teljes tábla ellenőrzése minden szimbólumra
-     */
-    public boolean checkAnyWin(Board board) {
-        // Ellenőrizzük minden nem üres mezőre
-        for (int row = 0; row < Board.SIZE; row++) {
-            for (int col = 0; col < Board.SIZE; col++) {
-                char symbol = board.getSymbolAt(row, col);
-                if (symbol != '.' && checkWin(board, row, col)) {
-                    return true;
-                }
-            }
-        }
-        return false;
-    }
-
-    /**
      * checkAnyWin Segédfüggvénye
      */
     public boolean checkWin(Board board, int lastRow, int lastCol) {
@@ -77,6 +61,14 @@ public class WinChecker {
 
     /**
      * Megszámolja, hány azonos szimbólum van egy vonalban mindkét irányba.
+     *
+     * @param board a játéktábla
+     * @param row a kezdő sor indexe
+     * @param col a kezdő oszlop indexe
+     * @param symbol a keresett szimbólum ('X' vagy 'O')
+     * @param rowDir az első irány sor változása
+     * @param colDir az első irány oszlop változása
+     * @return az összes egymás mellett lévő azonos szimbólum száma a teljes vonalban
      */
     private int countConsecutive(Board board, int row, int col, char symbol, int rowDir, int colDir) {
         int count = 1;
@@ -91,6 +83,14 @@ public class WinChecker {
 
     /**
      * Segédmetódus: Megszámolja, hány azonos szimbólum van egy adott irányban egymás mellett.
+     *
+     * @param board a játéktábla
+     * @param row a kezdő sor indexe
+     * @param col a kezdő oszlop indexe
+     * @param symbol a keresett szimbólum ('X' vagy 'O')
+     * @param rowDir a sor iránya (-1: fel, 0: marad, 1: le)
+     * @param colDir az oszlop iránya (-1: balra, 0: marad, 1: jobbra)
+     * @return az azonos szimbólumok száma az adott irányban (a kezdőpontot nem számolva)
      */
     private int countInDirection(Board board, int row, int col, char symbol, int rowDir, int colDir) {
         int count = 0;
