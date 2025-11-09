@@ -18,7 +18,7 @@ public class GameService {
     private Player currentPlayer;
     private Player player1;
     private Player player2;
-    private GameMode gameMode;
+    private final GameMode gameMode;
 
     public GameService(GameMode gameMode) {
         this.board = new Board();
@@ -102,24 +102,6 @@ public class GameService {
     }
 
     /**
-     * Visszaállítja a játékot a kezdeti állapotrára.
-     */
-    public void resetGame() {
-        board.clear();
-        gameState = GameState.IN_PROGRESS;
-        currentPlayer = player1;
-    }
-
-    /**
-     * Megváltoztatja a játék módot és visszaállítja a kezdeti állapotára
-     */
-    public void changeGameMode(GameMode newGameMode) {
-        this.gameMode = newGameMode;
-        initializePlayers();
-        resetGame();
-    }
-
-    /**
      * Az aktuális játék állapot kiírása.
      */
     public void printGameState() {
@@ -128,20 +110,12 @@ public class GameService {
         System.out.println("Játék mód: " + gameMode.getDisplayName());
 
         // Játék állapot megjelenítése játékos nevekkel
-        String stateDisplay;
-        switch (gameState) {
-            case PLAYER_X_WON:
-                stateDisplay = player1.getName() + " nyert (Szimbólum: X)";
-                break;
-            case PLAYER_O_WON:
-                stateDisplay = player2.getName() + " nyert (Szimbólum: O)";
-                break;
-            case DRAW:
-                stateDisplay = "Döntetlen";
-                break;
-            default:
-                stateDisplay = "Játék folyamatban";
-        }
+        String stateDisplay = switch (gameState) {
+            case PLAYER_X_WON -> player1.getName() + " nyert (Szimbólum: X)";
+            case PLAYER_O_WON -> player2.getName() + " nyert (Szimbólum: O)";
+            case DRAW -> "Döntetlen";
+            default -> "Játék folyamatban";
+        };
         System.out.println("Játék állapot: " + stateDisplay);
     }
 

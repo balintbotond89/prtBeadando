@@ -6,10 +6,12 @@ package nye.flocrm.progtech.model;
 public class HumanPlayer implements Player {
     private String name;
     private final char symbol;
+    private int score;
 
     public HumanPlayer(String name, char symbol) {
         this.name = name;
         this.symbol = symbol;
+        this.score = 0;
     }
 
     @Override
@@ -32,12 +34,25 @@ public class HumanPlayer implements Player {
 
     @Override
     public void makeMove(Board board) {
-        // Human move is handled by the UI, this is just a placeholder
-        // The actual move input comes from the console/UI
     }
 
     @Override
     public boolean isHuman() {
         return true;
+    }
+
+    @Override
+    public int getScore() {
+        return score;
+    }
+
+    @Override
+    public void setScore(int score) {
+        this.score = score;
+    }
+
+    @Override
+    public void addScore(int points) {
+        this.score += points;
     }
 }
