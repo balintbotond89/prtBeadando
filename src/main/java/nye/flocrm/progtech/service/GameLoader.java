@@ -13,11 +13,11 @@ public class GameLoader {
     public record GameState(Board board, Player player, String timestamp, GameMode gameMode) {
     }
 
-    public GameState loadGame() throws IOException {
-        File file = new File(SAVE_FILE);
+    public GameState loadGame(String filename) throws IOException {
+        File file = new File(filename);
 
         if (!file.exists() || file.length() == 0) {
-            throw new IOException("A fájl üres vagy nem létezik.");
+            throw new IOException("A fájl üres vagy nem létezik: " + filename);
         }
 
         try (BufferedReader reader = new BufferedReader(new FileReader(file))) {
@@ -40,7 +40,7 @@ public class GameLoader {
                 } else if (line.startsWith("Játékmód:")) {
                     String modeName = line.substring(10).trim();
                     gameMode = GameMode.valueOf(modeName);
-                }
+                }  // Szimbólum információ, de nem változtatjuk meg a konstruktorban beállítottat
             }
 
             if (player == null) {
@@ -75,18 +75,49 @@ public class GameLoader {
         }
     }
 
+    /**
+     * Feldolgoz egy tábla sort a mentett fájlból és beállítja a megfelelő cellákat a táblán.
+     * A metódus a fájlban található formátumot dolgozza fel, ahol a sorok a következőképpen néznek ki:
+     * {@code | 1 | X | . | O | ... |}
+     *
+     * <p>A feldolgozás a következő lépésekből áll:
+     * <ol>
+     *   <li>A sort felosztja '|' karakterek mentén</li>
+     *   <li>Az első két elemet (üres és sor szám) átugorja</li>
+     *   <li>A harmadik elemtől kezdve feldolgozza a cella értékeket</li>
+     *   <li>Csak érvényes szimbólumokat ('X', 'O', '.') helyez el a táblán</li>
+     * </ol>
+     *
+     * <p>A fájl formátuma miatt:
+     * <ul>
+     *   <li>{@code cells[0]} - üres string (a sor eleji '|' előtti rész)</li>
+     *   <li>{@code cells[1]} - a sor száma</li>
+     *   <li>{@code cells[2]} - az első cella értéke</li>
+     *   <li>{@code cells[3]} - a második cella értéke</li>
+     *   <li>... stb.</li>
+     * </ul>
+     *
+     * @param board a játéktábla, amit feltöltünk a mentett adatokkal
+     * @param line a fájlból beolvasott sor, amely a tábla egy sorát reprezentálja
+     * @param row a sor indexe (0-tól kezdődően), ahova az adatokat helyezzük
+     *
+     * @see Board#placeSymbol(int, int, char)
+     * @see GameLoader#loadGame()
+     * @see GameLoader#loadGame(String)
+     */
     private void processBoardLine(Board board, String line, int row) {
         String[] cells = line.split("\\|");
 
-        // Az első elem a sor száma, utána jönnek a cellák
-        for (int col = 1; col < cells.length && col <= Board.SIZE; col++) {
+        // A cellák a 2. indextől kezdődnek (0: üres, 1: sor száma, 2: első cella)
+        for (int col = 2; col < cells.length && (col - 2) < Board.SIZE; col++) {
             String cellValue = cells[col].trim();
             if (cellValue.length() == 1) {
                 char symbol = cellValue.charAt(0);
                 // Csak érvényes szimbólumokat helyezünk el
                 if (symbol == 'X' || symbol == 'O' || symbol == '.') {
                     // A Board placeSymbol metódusát használjuk
-                    board.placeSymbol(row, col - 1, symbol);
+                    // A cella indexe: col - 2, mert a 2. index az első cella
+                    board.placeSymbol(row, col - 2, symbol);
                 }
             }
         }
@@ -127,6 +158,10 @@ public class GameLoader {
                 writer.println("|");
             }
         }
+    }
+
+    public GameState loadGame() throws IOException {
+        return loadGame(SAVE_FILE);
     }
 
     public boolean saveFileExists() {

@@ -1,6 +1,7 @@
 package nye.flocrm.progtech.ui;
 
 import java.util.Scanner;
+import java.io.File; // Hiányzó import hozzáadva
 import nye.flocrm.progtech.model.Board;
 import nye.flocrm.progtech.model.GameMode;
 import nye.flocrm.progtech.model.GameState;
@@ -16,7 +17,7 @@ import nye.flocrm.progtech.service.LoggerService;
 public class GameController {
     private GameService gameService;
     private final Scanner scanner;
-    private final GameLoader gameLoader; // final javítás
+    private final GameLoader gameLoader;
 
     public GameController() {
         this.scanner = new Scanner(System.in);
@@ -50,19 +51,18 @@ public class GameController {
             switch (choice) {
                 case 1:
                     startNewGame();
-                    return;
+                    break;  // ne return, csak break
                 case 2:
                     loadGame();
-                    return;
+                    break;
                 case 3:
                     if (gameLoader.saveFileExists()) {
                         loadSavedGame();
-                        return;
                     }
                     break;
                 case 4:
                     System.out.println("Kilépés...");
-                    return;
+                    return; // itt return, mivel ki akarunk lépni
                 default:
                     System.out.println("Érvénytelen választás!");
             }
@@ -75,14 +75,95 @@ public class GameController {
         gameLoop();
     }
 
-    private void loadGame() {
-        System.out.print("Add meg a betöltendő fájl nevét: ");
-        String filename = scanner.nextLine().trim(); // változó használata
-        System.out.println("Fájl: " + filename); // változó használata
+    /**
+     * Játék állapot betöltése GameState objektumból
+     */
+    private void loadGameState(GameLoader.GameState gameState) {
+        // GameService létrehozása a mentett játékmóddal
+        this.gameService = new GameService(gameState.gameMode());
 
-        System.out.println("Ez a funkció jelenleg fejlesztés alatt áll.");
-        System.out.println("Új játékot indítok helyette...");
-        startNewGame();
+        // Tábla másolása
+        copyBoard(gameState.board(), gameService.getBoard());
+
+        // Játékos adatok másolása
+        if (gameState.player() instanceof HumanPlayer savedPlayer) {
+            HumanPlayer currentPlayer = (HumanPlayer) gameService.getPlayer1();
+            currentPlayer.setName(savedPlayer.getName());
+            currentPlayer.setScore(savedPlayer.getScore());
+        }
+
+        // WinChecker állapot frissítése
+        gameService.checkForWinner();
+    }
+
+    /**
+     * Játék állapot információinak kiírása
+     */
+    private void printGameStateInfo(GameLoader.GameState gameState) {
+        System.out.println("SIKER: Betöltötted " + gameState.player().getName() +
+                " játékát (" + gameState.timestamp() + ")");
+        System.out.println("Játékmód: " + gameState.gameMode().getDisplayName());
+
+        if (gameState.player() instanceof HumanPlayer humanPlayer) {
+            System.out.println("Pontszám: " + humanPlayer.getScore());
+        }
+    }
+
+    private void loadGame() {
+        while (true) {
+            System.out.println("\n=== Játék betöltése ===");
+            System.out.println("Add meg a betöltendő fájl teljes elérési útját.");
+            System.out.println("Példa: C:\\Temp\\game_save.txt vagy game_save.txt");
+            System.out.print("Fájlnév (vagy 'vissza' a menühöz): ");
+
+            String filename = scanner.nextLine().trim();
+
+            // Vissza a menübe
+            if (filename.equalsIgnoreCase("vissza")) {
+                return;
+            }
+
+            // Alapértelmezett fájl, ha üres
+            if (filename.isEmpty()) {
+                filename = "game_save.txt";
+                System.out.println("Alapértelmezett fájl használata: " + filename);
+            }
+
+            try {
+                // Fájl ellenőrzése
+                File file = new File(filename);
+                if (!file.exists()) {
+                    System.out.println("HIBA: A fájl nem található: " + filename);
+                    System.out.println("Kérlek ellenőrizd az elérési utat és próbáld újra!");
+                    continue;
+                }
+
+                if (file.length() == 0) {
+                    System.out.println("HIBA: A fájl üres: " + filename);
+                    System.out.println("Kérlek válassz egy másik fájlt!");
+                    continue;
+                }
+
+                System.out.println("Fájl betöltése: " + filename);
+
+                // Játék betöltése - a paraméteres loadGame-t hívjuk
+                GameLoader.GameState gameState = gameLoader.loadGame(filename);
+
+                // Játék állapot betöltése
+                loadGameState(gameState);
+
+                // Információk kiírása
+                printGameStateInfo(gameState);
+
+                // Játék folytatása
+                gameLoop();
+                return;
+
+            } catch (Exception e) {
+                System.out.println("HIBA a fájl betöltésekor: " + e.getMessage());
+                System.out.println("INFO: Kérlek próbálj meg egy másik fájlt, vagy írd be 'vissza' a menühöz.");
+            }
+        }
     }
 
     /**
@@ -92,38 +173,18 @@ public class GameController {
         try {
             GameLoader.GameState gameState = gameLoader.loadGame();
 
-            // GameService létrehozása a mentett játékmóddal
-            this.gameService = new GameService(gameState.gameMode());
+            // Játék állapot betöltése
+            loadGameState(gameState);
 
-            // Tábla másolása
-            copyBoard(gameState.board(), gameService.getBoard());
-
-            // Csak a játékos nevének és pontszámának másolása
-            if (gameState.player() instanceof HumanPlayer savedPlayer) { // pattern variable
-                HumanPlayer currentPlayer = (HumanPlayer) gameService.getPlayer1();
-
-                currentPlayer.setName(savedPlayer.getName());
-                currentPlayer.setScore(savedPlayer.getScore());
-            }
-
-            // WinChecker állapot frissítése
-            gameService.checkForWinner();
-
-            System.out.println("Sikeresen betöltötted " + gameState.player().getName() +
-                    " játékát (" + gameState.timestamp() + ")");
-            System.out.println("Játékmód: " + gameState.gameMode().getDisplayName());
-
-            // Pontszám kiírása - pattern variable használata
-            if (gameState.player() instanceof HumanPlayer humanPlayer) {
-                System.out.println("Pontszám: " + humanPlayer.getScore());
-            }
+            // Információk kiírása
+            printGameStateInfo(gameState);
 
             // Játék folytatása
             gameLoop();
 
         } catch (Exception e) {
             System.out.println("Hiba a mentett állás betöltésekor: " + e.getMessage());
-            LoggerService.warning("Mentett játék betöltési hiba: " + e.getMessage()); // LoggerService javítás
+            LoggerService.warning("Mentett játék betöltési hiba: " + e.getMessage());
             System.out.println("Új játékot indítok helyette...");
             startNewGame();
         }
@@ -144,6 +205,48 @@ public class GameController {
                     target.placeSymbol(row, col, symbol);
                 }
             }
+        }
+    }
+
+    /**
+     * Lépés feldolgozása a megadott inputból
+     */
+    private boolean processMoveInput(String input) {
+        try {
+            String[] parts = input.split("\\s+");
+
+            // Pontosan két szám ellenőrzése
+            if (parts.length != 2) {
+                System.out.println("Hiányos bemenet! Két számot kell megadni szóközzel elválasztva (pl: 3 5).");
+                return false;
+            }
+
+            // Számok konvertálása
+            int row = Integer.parseInt(parts[0]) - 1;
+            int col = Integer.parseInt(parts[1]) - 1;
+
+            // Tartomány ellenőrzése
+            if (row < 0 || row >= Board.SIZE || col < 0 || col >= Board.SIZE) {
+                System.out.println("Érvénytelen tartomány! Csak 1 és " + Board.SIZE + " közötti számokat adj meg.");
+                return false;
+            }
+
+            // Lépés végrehajtása
+            if (gameService.makeMove(row, col)) {
+                return true;
+            } else {
+                System.out.println("Érvénytelen lépés! A mező már foglalt!");
+                return false;
+            }
+
+        } catch (NumberFormatException e) {
+            System.out.println("Érvénytelen bevitel! Csak számokat adhatsz meg (1-" + Board.SIZE + ").");
+            System.out.println("Példa: '3 5' vagy '10 2'");
+            return false;
+        } catch (Exception e) {
+            System.out.println("Váratlan hiba történt. Próbáld újra.");
+            LoggerService.warning("Váratlan hiba processMoveInput-ban: " + e.getMessage());
+            return false;
         }
     }
 
@@ -177,9 +280,6 @@ public class GameController {
         }
     }
 
-    /**
-     * Módosított játék ciklus mentési lehetőséggel
-     */
     private void gameLoop() {
         while (true) {
             gameService.printGameState();
@@ -240,49 +340,7 @@ public class GameController {
     }
 
     /**
-     * Lépés feldolgozása a megadott inputból
-     */
-    private boolean processMoveInput(String input) {
-        try {
-            String[] parts = input.split("\\s+");
-
-            // Pontosan két szám ellenőrzése
-            if (parts.length != 2) {
-                System.out.println("Hiányos bemenet! Két számot kell megadni szóközzel elválasztva (pl: 3 5).");
-                return false;
-            }
-
-            // Számok konvertálása
-            int row = Integer.parseInt(parts[0]) - 1;
-            int col = Integer.parseInt(parts[1]) - 1;
-
-            // Tartomány ellenőrzése
-            if (row < 0 || row >= Board.SIZE || col < 0 || col >= Board.SIZE) {
-                System.out.println("Érvénytelen tartomány! Csak 1 és " + Board.SIZE + " közötti számokat adj meg.");
-                return false;
-            }
-
-            // Lépés végrehajtása
-            if (gameService.makeMove(row, col)) {
-                return true;
-            } else {
-                System.out.println("Érvénytelen lépés! A mező már foglalt!");
-                return false;
-            }
-
-        } catch (NumberFormatException e) {
-            System.out.println("Érvénytelen bevitel! Csak számokat adhatsz meg (1-" + Board.SIZE + ").");
-            System.out.println("Példa: '3 5' vagy '10 2'");
-            return false;
-        } catch (Exception e) {
-            System.out.println("Váratlan hiba történt. Próbáld újra.");
-            LoggerService.warning("Váratlan hiba processMoveInput-ban: " + e.getMessage());
-            return false;
-        }
-    }
-
-    /**
-     * Játék vége kezelése
+     * Játék végének kezelése
      */
     private void handleGameEnd() {
         GameState finalState = gameService.getGameState();
@@ -290,21 +348,24 @@ public class GameController {
 
         switch (finalState) {
             case PLAYER_X_WON:
-                System.out.println("GYŐZELEM! " + gameService.getPlayer1().getName() + " nyert!");
+                System.out.println("Győzelem! " + gameService.getPlayer1().getName() + " nyert!");
+                // Pontszám növelése az első játékosnak
                 if (gameService.getPlayer1() instanceof HumanPlayer humanPlayer) {
                     humanPlayer.addScore(10);
                     System.out.println("Pontszám: " + humanPlayer.getScore());
                 }
                 break;
             case PLAYER_O_WON:
-                System.out.println("GYŐZELEM! " + gameService.getPlayer2().getName() + " nyert!");
+                System.out.println("Győzelem! " + gameService.getPlayer2().getName() + " nyert!");
+                // Pontszám növelése a második játékosnak (ha emberi játékos)
                 if (gameService.getPlayer2() instanceof HumanPlayer humanPlayer) {
                     humanPlayer.addScore(10);
                     System.out.println("Pontszám: " + humanPlayer.getScore());
                 }
                 break;
             case DRAW:
-                System.out.println("DÖNTETLEN!");
+                System.out.println("Döntetlen!");
+                // Döntetlen esetén is adhatunk pontot
                 if (gameService.getPlayer1() instanceof HumanPlayer humanPlayer) {
                     humanPlayer.addScore(5);
                     System.out.println("Pontszám: " + humanPlayer.getScore());
@@ -315,23 +376,13 @@ public class GameController {
         }
     }
 
-    /**
-     * Felajánlja a felhasználónak egy új játék indításának lehetőségét.
-     */
     private void offerNewGame() {
-        while (true) {
-            System.out.print("\nSzeretnél új játékot kezdeni? (i/n): ");
-            String response = scanner.nextLine().trim().toLowerCase();
-
-            if (response.equals("i") || response.equals("igen")) {
-                new GameController().run();
-                return;
-            } else if (response.equals("n") || response.equals("nem")) {
-                System.out.println("Köszönöm, hogy játszottál!");
-                return;
-            } else {
-                System.out.println("Érvénytelen válasz! Kérlek írj 'i' (igen) vagy 'n' (nem) -et!");
-            }
+        System.out.print("\nSzeretnél új játékot kezdeni? (i/n): ");
+        String response = scanner.nextLine().trim().toLowerCase();
+        if (response.equals("i") || response.equals("igen")) {
+            new GameController().run();
+        } else {
+            System.out.println("Köszönöm, hogy játszottál!");
         }
     }
 
@@ -383,11 +434,11 @@ public class GameController {
         }
     }
 
-/**
- * Beolvas és validál egy menüpont választást a felhasználótól a megadott tartományban.
- * A metódus addig ismétli a bemenet kérését, amíg a felhasználó érvényes numerikus
- * értéket nem ad meg a megadott minimális és maximális értékek között.
- */
+    /**
+     * Beolvas és validál egy menüpont választást a felhasználótól a megadott tartományban.
+     * A metódus addig ismétli a bemenet kérését, amíg a felhasználó érvényes numerikus
+     * értéket nem ad meg 1 és maximális értékek között.
+     */
     private int getMenuChoice(int max) {
         while (true) {
             try {

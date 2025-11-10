@@ -27,13 +27,6 @@ public final class LoggerService {
     }
 
     /**
-     * Súlyos hibák logolása üzenettel.
-     */
-    public static void severe(String message) {
-        severe(message, null);
-    }
-
-    /**
      * Figyelmeztetések logolása.
      */
     public static void warning(String message) {
