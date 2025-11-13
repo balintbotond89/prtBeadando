@@ -1,7 +1,8 @@
 package nye.flocrm.progtech.ui;
 
 import java.util.Scanner;
-import java.io.File; // Hiányzó import hozzáadva
+import java.io.File;
+import java.util.List;
 import nye.flocrm.progtech.model.Board;
 import nye.flocrm.progtech.model.GameMode;
 import nye.flocrm.progtech.model.GameState;
@@ -9,6 +10,7 @@ import nye.flocrm.progtech.model.HumanPlayer;
 import nye.flocrm.progtech.service.GameService;
 import nye.flocrm.progtech.service.GameLoader;
 import nye.flocrm.progtech.service.LoggerService;
+import nye.flocrm.progtech.service.DatabaseService;
 
 /**
  * A játék vezérléséért felelős osztály.
@@ -18,10 +20,18 @@ public class GameController {
     private GameService gameService;
     private final Scanner scanner;
     private final GameLoader gameLoader;
+    private final DatabaseService databaseService;
 
     public GameController() {
         this.scanner = new Scanner(System.in);
         this.gameLoader = new GameLoader();
+        this.databaseService = new DatabaseService();
+
+        // Adatbázis kapcsolat tesztelése indításkor
+        if (!databaseService.testConnection()) {
+            System.out.println("Figyelmeztetés: Nem sikerült csatlakozni az adatbázishoz!");
+            System.out.println("A ranglista funkció nem lesz elérhető.");
+        }
     }
 
     public void run() {
@@ -38,15 +48,12 @@ public class GameController {
             System.out.println("\n=== Főmenü ===");
             System.out.println("1. Új játék");
             System.out.println("2. Játék betöltése");
-
-            if (gameLoader.saveFileExists()) {
-                System.out.println("3. Mentett állás visszatöltése");
-            }
-
-            System.out.println("4. Kilépés");
+            System.out.println("3. Mentett állás visszatöltése");
+            System.out.println("4. Ranglista");
+            System.out.println("5. Kilépés");
             System.out.print("Válassz opciót: ");
 
-            int choice = getMenuChoice(4);
+            int choice = getMenuChoice(5);
 
             switch (choice) {
                 case 1:
@@ -58,9 +65,14 @@ public class GameController {
                 case 3:
                     if (gameLoader.saveFileExists()) {
                         loadSavedGame();
+                    } else {
+                        System.out.println("Nem található betölthető játék");
                     }
                     break;
                 case 4:
+                    showRanking();
+                    break;
+                case 5:
                     System.out.println("Kilépés...");
                     return; // itt return, mivel ki akarunk lépni
                 default:
@@ -73,6 +85,35 @@ public class GameController {
         selectGameMode();
         getPlayerNames();
         gameLoop();
+    }
+
+    /**
+     * Ranglista megjelenítése
+     */
+    private void showRanking() {
+        System.out.println("\n=== RANGLISTA (Top 5) ===");
+
+        if (!databaseService.testConnection()) {
+            System.out.println("Hiba: Nem sikerült csatlakozni az adatbázishoz!");
+            System.out.println("Kérlek ellenőrizd az adatbázis kapcsolat beállításait.");
+            System.out.println("\nNyomj Enter-t a folytatáshoz...");
+            scanner.nextLine();
+            return;
+        }
+
+        List<String> topPlayers = databaseService.getTopPlayers(5);
+
+        if (topPlayers.isEmpty()) {
+            System.out.println("Még nincs eredmény a ranglistán!");
+            System.out.println("Játsz egy játékot, hogy felkerülj a ranglistára!");
+        } else {
+            for (String player : topPlayers) {
+                System.out.println(player);
+            }
+        }
+
+        System.out.println("\nNyomj Enter-t a folytatáshoz...");
+        scanner.nextLine();
     }
 
     /**
@@ -340,7 +381,7 @@ public class GameController {
     }
 
     /**
-     * Játék végének kezelése
+     * Játék végének kezelése - pontok mentése adatbázisba
      */
     private void handleGameEnd() {
         GameState finalState = gameService.getGameState();
@@ -349,26 +390,31 @@ public class GameController {
         switch (finalState) {
             case PLAYER_X_WON:
                 System.out.println("Győzelem! " + gameService.getPlayer1().getName() + " nyert!");
-                // Pontszám növelése az első játékosnak
                 if (gameService.getPlayer1() instanceof HumanPlayer humanPlayer) {
                     humanPlayer.addScore(10);
+                    databaseService.saveScore(humanPlayer.getName(), 10);
                     System.out.println("Pontszám: " + humanPlayer.getScore());
                 }
                 break;
             case PLAYER_O_WON:
                 System.out.println("Győzelem! " + gameService.getPlayer2().getName() + " nyert!");
-                // Pontszám növelése a második játékosnak (ha emberi játékos)
                 if (gameService.getPlayer2() instanceof HumanPlayer humanPlayer) {
                     humanPlayer.addScore(10);
+                    databaseService.saveScore(humanPlayer.getName(), 10);
                     System.out.println("Pontszám: " + humanPlayer.getScore());
                 }
                 break;
             case DRAW:
                 System.out.println("Döntetlen!");
-                // Döntetlen esetén is adhatunk pontot
-                if (gameService.getPlayer1() instanceof HumanPlayer humanPlayer) {
-                    humanPlayer.addScore(5);
-                    System.out.println("Pontszám: " + humanPlayer.getScore());
+                if (gameService.getPlayer1() instanceof HumanPlayer humanPlayer1) {
+                    humanPlayer1.addScore(5);
+                    databaseService.saveScore(humanPlayer1.getName(), 5);
+                    System.out.println("Pontszám (" + humanPlayer1.getName() + "): " + humanPlayer1.getScore());
+                }
+                if (gameService.getPlayer2() instanceof HumanPlayer humanPlayer2) {
+                    humanPlayer2.addScore(5);
+                    databaseService.saveScore(humanPlayer2.getName(), 5);
+                    System.out.println("Pontszám (" + humanPlayer2.getName() + "): " + humanPlayer2.getScore());
                 }
                 break;
             default:
