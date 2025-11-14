@@ -28,6 +28,31 @@ public class GameService {
         initializePlayers();
     }
 
+    // Getterek:
+    public Board getBoard() {
+        return board;
+    }
+
+    public GameState getGameState() {
+        return gameState;
+    }
+
+    public Player getCurrentPlayer() {
+        return currentPlayer;
+    }
+
+    public GameMode getGameMode() {
+        return gameMode;
+    }
+
+    public Player getPlayer1() {
+        return player1;
+    }
+
+    public Player getPlayer2() {
+        return player2;
+    }
+
     private void initializePlayers() {
         switch (gameMode) {
             case HUMAN_VS_HUMAN:
@@ -127,30 +152,5 @@ public class GameService {
         } else if (board.isFull()) {
             gameState = GameState.DRAW;
         }
-    }
-
-    // Getterek:
-    public Board getBoard() {
-        return board;
-    }
-
-    public GameState getGameState() {
-        return gameState;
-    }
-
-    public Player getCurrentPlayer() {
-        return currentPlayer;
-    }
-
-    public GameMode getGameMode() {
-        return gameMode;
-    }
-
-    public Player getPlayer1() {
-        return player1;
-    }
-
-    public Player getPlayer2() {
-        return player2;
     }
 }

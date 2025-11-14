@@ -44,15 +44,16 @@ public class GameController {
 
     private void showMainMenu() {
         while (true) {
-            System.out.println("\n=== Főmenü ===");
+            System.out.println("\n********** Főmenü **********");
             System.out.println("1. Új játék");
             System.out.println("2. Játék betöltése");
             System.out.println("3. Mentett állás visszatöltése");
             System.out.println("4. Ranglista");
             System.out.println("5. Kilépés");
-            System.out.print("Válassz opciót: ");
+            System.out.println("****************************");
+            System.out.print("\n---> Válassz opciót: ");
 
-            int choice = getMenuChoice(5);
+            int choice = getMenuChoice();
 
             switch (choice) {
                 case 1:
@@ -80,22 +81,57 @@ public class GameController {
         }
     }
 
+    /**
+     * Új játékot indít el a játékos által megadott nevekkel.
+     *
+     * <p>A metódus a következő feladatokat látja el:
+     * <ul>
+     *   <li>Inicializálja a játék szolgáltatást (GameService) a kiválasztott játékmóddal</li>
+     *   <li>Interaktív módon bekéri a játékosok neveit a játékmódnak megfelelően</li>
+     *   <li>Beállítja a játékosok neveit a játék szolgáltatásban</li>
+     *   <li>Elindítja a játék fő ciklusát</li>
+     *   <li>Kezeleli a játék indítás közben fellépő kivételeket</li>
+     * </ul>
+     *
+     * @see GameService#GameService(GameMode) A játék szolgáltatás konstruktora
+     * @see #getPlayerNames() A játékos nevek bekérését végző metódus
+     * @see #gameLoop() A játékmenetet vezérlő metódus
+     */
     private void startNewGame() {
-        selectGameMode();
-        getPlayerNames();
-        gameLoop();
+        try {
+            // Játékmód kiválasztása - ha visszalépnek, akkor kilépünk
+            if (!selectGameMode()) {
+                return;
+            }
+
+            LoggerService.info("Amőba játék indítása...");
+
+            // Játékos nevek bekérése
+            getPlayerNames();
+
+            // Játék indítása
+            gameLoop();
+
+            LoggerService.info("Amőba játék leállítva.");
+
+        } catch (Exception e) {
+            LoggerService.severe("Váratlan hiba történt a játék indítása során", e);
+            System.err.println("Váratlan hiba történt. További részletek a naplófájlban.");
+        }
     }
 
     /**
      * Ranglista megjelenítése
      */
     private void showRanking() {
-        System.out.println("\n=== RANGLISTA (Top 5) ===");
+        System.out.println("\n******* Ranglista ********");
+
+        System.out.println("A mindenkori legjobb öt játékos és összpontszáma: ");
 
         if (databaseService.isConnectionAvailable()) {
             System.out.println("Hiba: Nem sikerült csatlakozni az adatbázishoz!");
             System.out.println("Kérlek ellenőrizd az adatbázis kapcsolat beállításait.");
-            System.out.println("\nNyomj Enter-t a folytatáshoz...");
+            System.out.println("\n---> Nyomj Enter-t a folytatáshoz...");
             scanner.nextLine();
             return;
         }
@@ -111,7 +147,9 @@ public class GameController {
             }
         }
 
-        System.out.println("\nNyomj Enter-t a folytatáshoz...");
+        System.out.println("****************************");
+
+        System.out.println("\n---> Nyomj Enter-t a folytatáshoz...");
         scanner.nextLine();
     }
 
@@ -149,12 +187,43 @@ public class GameController {
         }
     }
 
+    /**
+     * Betölti a játék állapotát egy fájlból.
+     *
+     * <p>A metódus interaktív módon kéri a felhasználótól a betöltendő fájl elérési útját.
+     * A következő funkciókat tartalmazza:
+     * <ul>
+     *   <li>Felhasználói interfész a fájlnév megadásához</li>
+     *   <li>"vissza" kulcsszóval lehetőség van a menübe való visszalépésre</li>
+     *   <li>Ellenőrzi, hogy a megadott fájl létezik-e és nem üres-e</li>
+     *   <li>Explicit tiltja a "game_save.txt" fájl betöltését</li>
+     *   <li>Hibakezelés érvénytelen fájlformátum vagy I/O hibák esetén</li>
+     *   <li>Sikeres betöltés esetén frissíti a játék állapotát és megjeleníti a játékot</li>
+     * </ul>
+     *
+     * <p>A metódus addig ismétli a fájlnév bekérését, amíg a felhasználó nem ad meg érvényes fájlt
+     * vagy nem lép vissza a menübe a "vissza" kulcsszóval.
+     *
+     * <p><strong>Fájlformátum elvárások:</strong>
+     * <ul>
+     *   <li>A fájlnak tartalmaznia kell a tábla állapotát és a játékos adatokat</li>
+     *   <li>A fájl nem lehet üres</li>
+     *   <li>A fájlnév nem lehet "game_save.txt"</li>
+     * </ul>
+     *
+     * @see GameLoader#loadGame(String) A tényleges fájlbetöltést végző metódus
+     * @see #loadGameState(GameLoader.GameState) A játékállapot betöltését végző metódus
+     * @see #printGameStateInfo(GameLoader.GameState) A játék információk megjelenítését végző metódus
+     * @see #gameLoop() A játékmenetet vezérlő metódus
+     *
+     */
     private void loadGame() {
         while (true) {
-            System.out.println("\n=== Játék betöltése ===");
+            System.out.println("\n****** Játék betöltése ******");
             System.out.println("Add meg a betöltendő fájl teljes elérési útját.");
             System.out.println("Példa: C:\\Temp\\game_save.txt vagy game_save.txt");
-            System.out.print("Fájlnév (vagy 'vissza' a menühöz): ");
+            System.out.println("****************************");
+            System.out.print("\n---> Fájlnév (vagy 'vissza' a menühöz): ");
 
             String filename = scanner.nextLine().trim();
 
@@ -163,21 +232,32 @@ public class GameController {
                 return;
             }
 
-            // Alapértelmezett fájl, ha üres
-            if (filename.isEmpty()) {
-                filename = "game_save.txt";
-                System.out.println("Alapértelmezett fájl használata: " + filename);
-            }
-
             try {
                 // Fájl ellenőrzése
                 File file = new File(filename);
+
+                // Ha a fájlnév üres
+                if (filename.isEmpty()) {
+                    System.out.println("HIBA: A fájlnév nem lehet üres!");
+                    System.out.println("Kérlek adj meg egy érvényes fájlnevet!");
+                    continue;
+                }
+
+                // Tiltjuk a game_save.txt fájl betöltését, mivel az az idégelenes mentésre mutat
+                if (filename.equalsIgnoreCase("game_save.txt")) {
+                    System.out.println("HIBA: A fájl nem található: " + filename);
+                    System.out.println("Kérlek adj meg egy érvényes elérési útat!");
+                    continue;
+                }
+
+                //Ha a fájl nem létezik
                 if (!file.exists()) {
                     System.out.println("HIBA: A fájl nem található: " + filename);
                     System.out.println("Kérlek ellenőrizd az elérési utat és próbáld újra!");
                     continue;
                 }
 
+                //Ha létezik a fájl de üres
                 if (file.length() == 0) {
                     System.out.println("HIBA: A fájl üres: " + filename);
                     System.out.println("Kérlek válassz egy másik fájlt!");
@@ -431,17 +511,56 @@ public class GameController {
         }
     }
 
-    private void selectGameMode() {
-        System.out.println("Játékmód kiválasztása:");
-        System.out.println("1. " + GameMode.HUMAN_VS_HUMAN.getDisplayName());
-        System.out.println("2. " + GameMode.HUMAN_VS_AI.getDisplayName());
-        System.out.print("Kérlek válassz (1-2): ");
+    /**
+     * Játékmód kiválasztását kezeli, lehetőséget biztosítva a főmenübe való visszatérésre.
+     *
+     * <p>A metódus a következő feladatokat látja el:
+     * <ul>
+     *   <li>Megjeleníti a választható játékmódokat</li>
+     *   <li>Lehetőséget biztosít a "vissza" kulcsszó megadásával a főmenübe való visszatérésre</li>
+     *   <li>Ellenőrzi a bemenet érvényességét (1-2 szám vagy "vissza")</li>
+     *   <li>Inicializálja a GameService-t a kiválasztott játékmóddal</li>
+     * </ul>
+     *
+     * @return true ha sikeresen kiválasztották a játékmódot, false ha visszaléptek a főmenübe
+     * @see GameService
+     * @see GameMode
+     */
+    private boolean selectGameMode() {
+        while (true) {
+            System.out.println("\n***************************");
+            System.out.println("Játékmód kiválasztása:");
+            System.out.println("1. " + GameMode.HUMAN_VS_HUMAN.getDisplayName());
+            System.out.println("2. " + GameMode.HUMAN_VS_AI.getDisplayName());
+            System.out.println("****************************");
+            System.out.print("\n---> Kérlek válassz (1-2 vagy 'vissza' a menühöz): ");
 
-        int choice = getMenuChoice(2);
-        GameMode selectedMode = (choice == 1) ? GameMode.HUMAN_VS_HUMAN : GameMode.HUMAN_VS_AI;
+            String input = scanner.nextLine().trim();
 
-        this.gameService = new GameService(selectedMode);
-        System.out.println("\nKiválasztva: " + selectedMode.getDisplayName());
+            // Vissza a főmenübe
+            if (input.equalsIgnoreCase("vissza")) {
+                System.out.println("Visszalépés a főmenübe...");
+                return false;
+            }
+
+            try {
+                int choice = Integer.parseInt(input);
+
+                if (choice == 1 || choice == 2) {
+                    GameMode selectedMode = (choice == 1) ? GameMode.HUMAN_VS_HUMAN : GameMode.HUMAN_VS_AI;
+                    this.gameService = new GameService(selectedMode);
+                    System.out.println("\nKiválasztva: " + selectedMode.getDisplayName());
+                    break;
+                } else {
+                    System.out.println("HIBA: Csak 1 vagy 2 lehet a választás!");
+                    System.out.println("Próbáld újra vagy írd be 'vissza' a főmenübe.");
+                }
+            } catch (NumberFormatException e) {
+                System.out.println("HIBA: Érvénytelen bemenet! Csak 1, 2 vagy 'vissza' fogadható el.");
+                System.out.println("Próbáld újra.");
+            }
+        }
+        return true;
     }
 
     private void getPlayerNames() {
@@ -500,15 +619,15 @@ public class GameController {
      * A metódus addig ismétli a bemenet kérését, amíg a felhasználó érvényes numerikus
      * értéket nem ad meg 1 és maximális értékek között.
      */
-    private int getMenuChoice(int max) {
+    private int getMenuChoice() {
         while (true) {
             try {
                 int choice = scanner.nextInt();
                 scanner.nextLine();
-                if (choice >= 1 && choice <= max) {
+                if (choice >= 1 && choice <= 5) {
                     return choice;
                 }
-                System.out.print("Kérem adjon meg egy számot " + 1 + " és " + max + " között: ");
+                System.out.print("Kérem adjon meg egy számot " + 1 + " és " + 5 + " között: ");
             } catch (Exception e) {
                 System.out.print("Érvénytelen bevitel! Kérem adjon meg egy érvényes számot: ");
                 scanner.nextLine();
