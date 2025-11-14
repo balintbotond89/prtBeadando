@@ -5,6 +5,8 @@ package nye.flocrm.progtech.model;
  */
 public interface Scoreable {
     int getScore();
+
     void setScore(int score);
+
     void addScore(int points);
 }
