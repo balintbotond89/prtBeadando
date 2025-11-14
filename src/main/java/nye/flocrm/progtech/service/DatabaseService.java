@@ -10,15 +10,29 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Properties;
 
+/**
+ * Adatbázis kezelő szolgáltatás.
+ * Biztosítja a pontszámok mentését és lekérését adatbázisból.
+ */
 public class DatabaseService {
     private static final String DB_URL = "jdbc:postgresql://homedb.ddns.net:26257/amoba";
     private static final String USER = "balintbotond"; // felhasználó
     private static final String PASSWORD = "dfxpdl771989"; // jelszó
 
+    /**
+     * Konstruktor az adatbázis szolgáltatás inicializálásához.
+     * Automatikusan inicializálja az adatbázis táblát.
+     */
     public DatabaseService() {
         initializeDatabase();
     }
 
+    /**
+     * Privát metódus adatbázis kapcsolat létrehozásához.
+     *
+     * @return adatbázis kapcsolat
+     * @throws SQLException ha hiba történik a kapcsolat létrehozásakor
+     */
     private Connection getConnection() throws SQLException {
         try {
             Class.forName("org.postgresql.Driver");
@@ -32,6 +46,9 @@ public class DatabaseService {
         return DriverManager.getConnection(DB_URL, props);
     }
 
+    /**
+     * Inicializálja az adatbázis táblát, ha az még nem létezik.
+     */
     private void initializeDatabase() {
         String sql = "CREATE TABLE IF NOT EXISTS scores (" +
                 "id SERIAL PRIMARY KEY, " +
@@ -48,6 +65,12 @@ public class DatabaseService {
         }
     }
 
+    /**
+     * Elmenti a játékos pontszámát az adatbázisba.
+     *
+     * @param player a játékos neve
+     * @param score a pontszám
+     */
     public void saveScore(String player, int score) {
         String sql = "INSERT INTO scores(player, score) VALUES(?, ?)";
 
@@ -62,6 +85,12 @@ public class DatabaseService {
         }
     }
 
+    /**
+     * Visszaadja a legjobb játékosok listáját.
+     *
+     * @param limit a visszaadandó játékosok maximális száma
+     * @return a ranglista sztringek listája
+     */
     public List<String> getTopPlayers(int limit) {
         List<String> topPlayers = new ArrayList<>();
         String sql = "SELECT player, SUM(score) as total_score " +

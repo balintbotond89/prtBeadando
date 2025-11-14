@@ -6,6 +6,7 @@ import java.util.List;
 import nye.flocrm.progtech.model.Board;
 import nye.flocrm.progtech.model.GameMode;
 import nye.flocrm.progtech.model.GameState;
+import nye.flocrm.progtech.model.Player;
 import nye.flocrm.progtech.model.HumanPlayer;
 import nye.flocrm.progtech.service.GameService;
 import nye.flocrm.progtech.service.GameLoader;
@@ -22,6 +23,10 @@ public class GameController {
     private final GameLoader gameLoader;
     private final DatabaseService databaseService;
 
+    /**
+     * Konstruktor a játékvezérlő inicializálásához.
+     * Inicializálja a szükséges szolgáltatásokat és ellenőrzi az adatbázis kapcsolatot.
+     */
     public GameController() {
         this.scanner = new Scanner(System.in);
         this.gameLoader = new GameLoader();
@@ -33,6 +38,21 @@ public class GameController {
         }
     }
 
+    /**
+     * A játék fő indítási pontja és vezérlőciklusa.
+     * Ez a metódus indítja el a játékot, és kezeli a főmenü megjelenítését
+     * és a felhasználói interakciót. A metódus a következő feladatokat látja el:
+     * <p>
+     * - Kiírja az üdvözlő üzenetet és a játék alapvető szabályait
+     * - Megjeleníti a főmenüt és kezeli a felhasználó választásait
+     * - Biztosítja a scanner erőforrás megfelelő lezárását a program végén
+     * - Kezeli a különböző menüpontok (új játék, betöltés, ranglista, kilépés) végrehajtását
+     * <p>
+     * A metódus a program futását a főmenü ciklusán keresztül irányítja, amíg a felhasználó
+     * nem választja a kilépés opciót. Kilépéskor megfelelően lezárja a használt erőforrásokat.
+     *
+     * @see #showMainMenu() A főmenü megjelenítését és kezelését végző metódus
+     */
     public void run() {
         System.out.println("Isten hozott az amőba játékban!");
         System.out.println("Rakj le 5 jelet egy sorban a győzelemhez!\n");
@@ -42,6 +62,25 @@ public class GameController {
         scanner.close();
     }
 
+    /**
+     * Megjeleníti és kezeli a játék főmenüjét.
+     * A metódus egy folyamatos ciklusban jeleníti meg a főmenü opcióit és kezeli
+     * a felhasználó választását. A menü a következő opciókat tartalmazza:
+     * <p>
+     * - 1. Új játék indítása
+     * - 2. Játék betöltése fájlból
+     * - 3. Mentett állás visszatöltése (automatikus mentésből)
+     * - 4. Ranglista megjelenítése
+     * - 5. Kilépés a játékból
+     * <p>
+     * A metódus a felhasználó választása alapján meghívja a megfelelő segédmetódusokat.
+     * A ciklus addig fut, amíg a felhasználó nem választja a kilépés opciót (5).
+     *
+     * @see #startNewGame() Új játék indítását végző metódus
+     * @see #loadGame() Játék betöltését végző metódus
+     * @see #loadSavedGame() Automatikusan mentett játék betöltését végző metódus
+     * @see #showRanking() Ranglista megjelenítését végző metódus
+     */
     private void showMainMenu() {
         while (true) {
             System.out.println("\n********** Főmenü **********");
@@ -104,15 +143,11 @@ public class GameController {
                 return;
             }
 
-            LoggerService.info("Amőba játék indítása...");
-
             // Játékos nevek bekérése
             getPlayerNames();
 
             // Játék indítása
             gameLoop();
-
-            LoggerService.info("Amőba játék leállítva.");
 
         } catch (Exception e) {
             LoggerService.severe("Váratlan hiba történt a játék indítása során", e);
@@ -121,7 +156,29 @@ public class GameController {
     }
 
     /**
-     * Ranglista megjelenítése
+     * Megjeleníti a játék ranglistáját az adatbázisból.
+     * A metódus a következő feladatokat látja el:
+     * <p>
+     * - Megjeleníti a ranglista fejlécét és leírását
+     * - Ellenőrzi az adatbázis kapcsolat elérhetőségét
+     * - Ha nem elérhető az adatbázis, hibát jelez és visszatér a menübe
+     * - Lekéri az adatbázisból a legjobb 5 játékos összpontszám szerinti listáját
+     * - Formázottan megjeleníti a ranglistát sorszámozva
+     * - Kezeli az üres ranglista esetét, tájékoztató üzenettel
+     * - Vár a felhasználó bemenetére a folytatás előtt
+     * <p>
+     * A ranglista formátuma:
+     * 1. Játékosnév - 100 pont
+     * 2. MásikJátékos - 80 pont
+     * <p>
+     * Adatbázis kapcsolat hiányában a metódus tájékoztatja a felhasználót
+     * a kapcsolati problémáról és ajánlja a beállítások ellenőrzését.
+     *
+     * @see DatabaseService#getTopPlayers(int) A ranglista lekérdezését végző metódus
+     * @see DatabaseService#isConnectionAvailable() Az adatbázis kapcsolat ellenőrzését végző metódus
+     *
+     * @implNote A metódus a ranglistát a scores táblából kérdezi le,
+     *           ahol a játékosok pontszámai összeadódnak és csökkenő sorrendbe rendeződnek
      */
     private void showRanking() {
         System.out.println("\n******* Ranglista ********");
@@ -154,7 +211,33 @@ public class GameController {
     }
 
     /**
-     * Játék állapot betöltése GameState objektumból
+     * Betölti és beállítja a játék állapotát egy mentett GameState objektumból.
+     * A metódus a következő feladatokat látja el:
+     * <p>
+     * - Létrehoz egy új GameService példányt a mentett játékmód alapján
+     * - Másolja a mentett tábla állapotát az aktuális játék táblájába
+     * - Beállítja a játékos adatait (nevet és pontszámot) a mentett állapotból
+     * - Frissíti a győzelem ellenőrző állapotát az új tábla alapján
+     * <p>
+     * A metódus csak HumanPlayer típusú játékosok esetén másolja a pontszámot,
+     * mivel az AI játékosoknak nincs pontszámuk.
+     *
+     * @param gameState a betöltendő játékállapot, amely tartalmazza:
+     *                  - a mentett játéktáblát
+     *                  - a játékos adatait
+     *                  - a játékmódot
+     *                  - az időbélyeget
+     *
+     * @see #copyBoard(Board, Board) A tábla másolását végző segédmetódus
+     * @see GameService#GameService(GameMode) A játék szolgáltatás konstruktora
+     * @see GameService#checkForWinner() A győzelem ellenőrzését végző metódus
+     *
+     * @implNote A metódus feltételezi, hogy a GameService player1 mindig HumanPlayer típusú
+     *           a HUMAN_VS_HUMAN és HUMAN_VS_AI játékmódokban. Ez a jelenlegi implementációval
+     *           konzisztens, mivel az AI mindig a második játékos.
+     *
+     * @throws NullPointerException ha a gameState paraméter null, vagy a benne lévő
+     *         játékos nem HumanPlayer a név és pontszám másolásakor
      */
     private void loadGameState(GameLoader.GameState gameState) {
         // GameService létrehozása a mentett játékmóddal
@@ -175,7 +258,33 @@ public class GameController {
     }
 
     /**
-     * Játék állapot információinak kiírása
+     * Megjeleníti a betöltött játékállapot információit a felhasználó számára.
+     * A metódus a következő információkat jeleníti meg formázott módon:
+     * <p>
+     * - A betöltött játékos nevét és a betöltés sikerességének megerősítését
+     * - A mentés időbélyegét (timestamp)
+     * - A játékmód típusát és megjelenítendő nevét
+     * - A játékos aktuális pontszámát (csak HumanPlayer esetén)
+     * <p>
+     * A metódus elsősorban visszajelzést ad a felhasználónak a sikeres betöltésről
+     * és áttekintést nyújt a betöltött játék alapvető paramétereiről.
+     *
+     * @param gameState a betöltött játékállapot, amelynek információit meg kell jeleníteni
+     *                  tartalmazza a játékos adatait, időbélyeget és játékmódot
+     *
+     * @see GameLoader.GameState#player() A játékos adatainak lekérdezése
+     * @see GameLoader.GameState#timestamp() A mentés időbélyegének lekérdezése
+     * @see GameLoader.GameState#gameMode() A játékmód lekérdezése
+     *
+     * @implNote A metódus csak olvasási műveleteket végez, nem módosítja a gameState objektumot.
+     *           A pontszám megjelenítése csak akkor történik, ha a játékos HumanPlayer típusú,
+     *           mivel az AI játékosoknak nincs pontszámuk.
+     *
+     * @example
+     * // Példa kimenet:
+     * // SIKER: Betöltötted Kati játékát (Wed Nov 15 14:30:45 CET 2023)
+     * // Játékmód: Ember vs Számítógép
+     * // Pontszám: 15
      */
     private void printGameStateInfo(GameLoader.GameState gameState) {
         System.out.println("SIKER: Betöltötted " + gameState.player().getName() +
@@ -287,7 +396,40 @@ public class GameController {
     }
 
     /**
-     * Mentett állás visszatöltése
+     * Betölti az automatikusan mentett játékállapotot az alapértelmezett fájlból. (Idéglenes mentés)
+     * A metódus a következő feladatokat látja el:
+     * <p>
+     * - Megpróbálja betölteni a játékállapotot a GameLoader segítségével
+     * - Sikeres betöltés esetén beállítja a játék állapotát a loadGameState() metódussal
+     * - Megjeleníti a betöltött játék információit a felhasználó számára
+     * - Folytatja a játékot a gameLoop() metódussal
+     * - Hibakezelés: ha a betöltés sikertelen, hibát jelez és új játékot indít
+     * <p>
+     * A metódus az alapértelmezett "game_save.txt" fájlt használja a betöltéshez,
+     * amely a GameLoader SAVE_FILE konstansában van definiálva.
+     *
+     * @see GameLoader#loadGame() Az alapértelmezett fájlból történő betöltést végző metódus
+     * @see #loadGameState(GameLoader.GameState) A játékállapot betöltését végző metódus
+     * @see #printGameStateInfo(GameLoader.GameState) A játék információk megjelenítését végző metódus
+     * @see #gameLoop() A játékmenetet vezérlő metódus
+     * @see #startNewGame() Az új játék indítását végző metódus
+     *
+     * @implNote A metódus kivételkezeléssel van ellátva, hogy biztosítsa a rendszer
+     *           stabil működését még betöltési hibák esetén is. Ha a betöltés nem
+     *           sikerül, a rendszer automatikusan új játékot indít a felhasználó
+     *           számára, így biztosítva a folyamatos játékélményt.
+     *
+     * @example
+     * // Sikeres betöltés esete:
+     * // 1. Betölti a mentett állást a game_save.txt fájlból
+     * // 2. Beállítja a játék állapotát
+     * // 3. Megjeleníti a játék információit
+     * // 4. Folytatja a játékot
+     * <p>
+     * // Sikertelen betöltés esete:
+     * // 1. Kivételt dob a GameLoader.loadGame()
+     * // 2. Elfogja a kivételt és hibát jelez
+     * // 3. Új játékot indít a startNewGame() metódussal
      */
     private void loadSavedGame() {
         try {
@@ -311,13 +453,40 @@ public class GameController {
     }
 
     /**
-     * Tábla másolása a mentett állapotból
+     * Egy játéktábla teljes állapotát másolja át egy másik táblába.
+     * A metódus a következő feladatokat látja el:
+     * <p>
+     * - Kiüríti a cél táblát a target.clear() hívással
+     * - Végigiterál a forrás tábla összes celláján (0-tól Board.SIZE-1-ig)
+     * - Minden nem üres cellát (szimbólum != '.') átmásol a forrásból a célba
+     * - Megőrzi a cellák pozícióját (sor és oszlop indexek)
+     * - Csak érvényes szimbólumokat másol ('X' és 'O')
+     * <p>
+     * A metódus feltételezi, hogy a forrás és cél táblák mérete megegyezik (Board.SIZE).
+     *
+     * @param source a forrás tábla, amelyből másoljuk az állapotot
+     * @param target a cél tábla, amelybe másoljuk az állapotot
+     *
+     * @see Board#clear() A cél tábla kiürítését végző metódus
+     * @see Board#getSymbolAt(int, int) A cella értékének lekérdezését végző metódus
+     * @see Board#placeSymbol(int, int, char) A szimbólum elhelyezését végző metódus
+     *
+     * @implNote A metódus csak olvasási műveleteket végez a forrás táblán, így az változatlan marad.
+     *           A cél tábla teljesen újraírásra kerül, minden korábbi állapot elvész.
+     *           A másolás során csak a nem üres mezők kerülnek átvitelre, optimalizálva a folyamatot.
+     *
+     * @implSpec A metódus nem végez méretellenőrzést, feltételezve, hogy a forrás és cél táblák
+     *           kompatibilisek. Ha a táblák mérete eltérő, váratlan viselkedés léphet fel.
+     *
+     * @example
+     * // Példa másolási folyamat:
+     * // Forrás tábla: [['X', '.', 'O'], ['.', 'X', '.'], ['.', '.', 'O']]
+     * // Cél tábla kiürítése
+     * // Cél tálla másolás után: [['X', '.', 'O'], ['.', 'X', '.'], ['.', '.', 'O']]
      */
     private void copyBoard(Board source, Board target) {
-        // Először töröljük a céltáblát
         target.clear();
 
-        // Másoljuk át az összes mezőt
         for (int row = 0; row < Board.SIZE; row++) {
             for (int col = 0; col < Board.SIZE; col++) {
                 char symbol = source.getSymbolAt(row, col);
@@ -329,7 +498,36 @@ public class GameController {
     }
 
     /**
-     * Lépés feldolgozása a megadott inputból
+     * Feldolgozza és érvényesíti a felhasználó által megadott lépés bemenetét.
+     * A metódus a következő feladatokat látja el:
+     * <p>
+     * - Felosztja a bemeneti stringet szóközök mentén részekre
+     * - Ellenőrzi, hogy pontosan két számot tartalmaz-e a bemenet
+     * - Konvertálja a számokat integer értékekké
+     * - Ellenőrzi a számok tartományát (1 és Board.SIZE között kell legyenek)
+     * - Átkonvertálja a felhasználóbarát (1-alapú) indexeket programbarát (0-alapú) indexekké
+     * - Megkísérli végrehajtani a lépést a játék szolgáltatáson keresztül
+     * - Átfogó hibakezelést biztosít minden lehetséges bemeneti hiba esetén
+     *
+     * @param input a felhasználó által megadott bemeneti string, amely két számot
+     *              kell tartalmazzon szóközzel elválasztva (pl.: "3 5")
+     *
+     * @return true ha a lépés sikeresen végrehajtásra került, false ha érvénytelen
+     *         a bemenet vagy a lépés nem hajtható végre
+     *
+     * @see GameService#makeMove(int, int) A tényleges lépés végrehajtását végző metódus
+     * @see Board#SIZE A tábla méretének konstansa
+     *
+     * @implNote A metódus kivételkezeléssel van ellátva, hogy biztosítsa a rendszer
+     *           stabil működését még érvénytelen bemenet esetén is. A hibakezelés
+     *           részletes és felhasználóbarát hibaüzeneteket biztosít.
+     *
+     * @throws NumberFormatException ha a bemenet nem konvertálható számokká
+     *         (a kivételt elkapja és helyileg kezeli, nem propagálja tovább)
+     *
+     * @example
+     * // Érvényes bemenetek: "3 5", "10 2", "1 1"
+     * // Érvénytelen bemenetek: "3", "3 5 7", "abc", "0 5", "11 1"
      */
     private boolean processMoveInput(String input) {
         try {
@@ -371,7 +569,27 @@ public class GameController {
     }
 
     /**
-     * Játékmenet közbeni mentés lehetőség
+     * Felajánlja a játék mentésének lehetőségét a felhasználónak kilépés előtt.
+     * A metódus a következő feladatokat látja el:
+     * <p>
+     * - Interaktív párbeszédet kezd a felhasználóval a játék mentéséről
+     * - Feldolgozza a felhasználó válaszát (igen/nem vagy rövidítések)
+     * - Ha a felhasználó igennel válaszol, megkísérli menteni a játékállapotot
+     * - Ha a mentés sikeres, visszajelzést ad a felhasználónak
+     * - Ha a mentés sikertelen, hibát jelez és naplózza a problémát
+     * - Ha a felhasználó nemmel válaszol, kilép mentés nélkül
+     * - Érvénytelen válasz esetén ismétli a kérdést, amíg érvényes választ nem kap
+     * <p>
+     * A metódus a következő válaszokat fogadja el:
+     * - Igen: "i", "igen" (kis/nagybetű érzéketlen)
+     * - Nem: "n", "nem" (kis/nagybetű érzéketlen)
+     *
+     * @see GameLoader#saveGame(Board, Player, GameMode) A játék mentését végző metódus
+     * @see LoggerService#warning(String) A figyelmeztető üzenetek naplózását végző metódus
+     *
+     * @implNote A metódus egy while ciklusban működik, amely addig ismétli a kérdést,
+     *           amíg a felhasználó érvényes választ nem ad. Ez biztosítja, hogy a program
+     *           ne lépjen tovább érvénytelen bemenet esetén.
      */
     private void offerSaveGame() {
         while (true) {
@@ -400,6 +618,38 @@ public class GameController {
         }
     }
 
+    /**
+     * A játék fő ciklusa, amely kezeli a játék menetét.
+     * A metódus a következő feladatokat látja el:
+     * <p>
+     * - Megjeleníti a játék aktuális állapotát (tábla, játékos, játékmód, állapot)
+     * - Ellenőrzi, hogy véget ért-e a játék (győzelem vagy döntetlen)
+     * - Bekéri a felhasználó lépését vagy a mentési/kilépési opciókat
+     * - Feldolgozza a felhasználó inputját (lépés, mentés, kilépés)
+     * - AI játékos esetén automatikusan végrehajtja az AI lépését
+     * - A játék végén kezeli a győzelem/döntetlen eseményét és kínál új játékot
+     * <p>
+     * A ciklus a következő lépésekből áll:
+     * 1. Játékállapot kiírása (tábla és információk)
+     * 2. Játékállapot ellenőrzése (ha nem folyamatban, kilép)
+     * 3. Felhasználói input bekérése
+     * 4. Input feldolgozása:
+     *    - Üres input: újrakezdés
+     *    - "m" vagy "mentés": játék mentése
+     *    - "k" vagy "kilépés": kilépés a játékból (mentés lehetőségével)
+     *    - Egyéb: lépés feldolgozása
+     * 5. Sikeres lépés után, ha a következő játékos AI, akkor AI lépés végrehajtása
+     *
+     * @see #processMoveInput(String) A lépés feldolgozását végző metódus
+     * @see #offerSaveGame() A mentést felajánló metódus
+     * @see #handleGameEnd() A játék végének kezelését végző metódus
+     * @see #offerNewGame() Az új játék indítását felajánló metódus
+     *
+     * @implNote A ciklus addig fut, amíg a játék állapota `IN_PROGRESS`. A felhasználói input
+     *           feldolgozása után a metódus ellenőrzi, hogy a játékos AI-e, és ha igen, akkor
+     *           azonnal végrehajtja az AI lépését. Ez biztosítja, hogy az AI mindig az emberi
+     *           játékos lépése után azonnal lépjen.
+     */
     private void gameLoop() {
         while (true) {
             gameService.printGameState();
@@ -460,7 +710,44 @@ public class GameController {
     }
 
     /**
-     * Játék végének kezelése - pontok mentése adatbázisba
+     * Kezeli a játék végét és végrehajtja a végeredmény alapján szükséges műveleteket.
+     * A metódus a következő feladatokat látja el:
+     * <p>
+     * - Kiírja a játék végeredményét (győzelem vagy döntetlen)
+     * - Pontozza a győztes játékosokat (10 pont győzelemért, 5 pont döntetlenért)
+     * - Elmenti a pontszámokat az adatbázisba a ranglista számára
+     * - Megjeleníti a játékosok frissített pontszámait
+     * - Differenciált kezelést biztosít a különböző játék végeredmények esetén
+     * <p>
+     * A pontozási rendszer:
+     * - Győzelem: 10 pont a győztes játékosnak
+     * - Döntetlen: 5 pont mindkét emberi játékosnak
+     * - Játék megszakítása: nincs pontozás
+     *
+     * @see DatabaseService#saveScore(String, int) A pontszám mentését végző metódus
+     * @see HumanPlayer#addScore(int) A pontszám növelését végző metódus
+     *
+     * @implNote A metódus csak HumanPlayer típusú játékosok számára ad pontokat,
+     *           mivel az AI játékosoknak nincs pontszámuk. A pontozás automatikusan
+     *           megtörténik a játék végén, a felhasználónak nem kell külön kérnie.
+     *
+     * @implSpec A metódus feltételezi, hogy a GameService-ben a player1 és player2
+     *           megfelelően inicializálva vannak, és hogy a játék végeredménye
+     *           helyesen beállításra került a GameState enum segítségével.
+     *
+     * @example
+     * // PLAYER_X_WON esetén:
+     * // "Győzelem! Kati nyert!"
+     * // "Pontszám: 25"
+     * <p>
+     * // PLAYER_O_WON esetén:
+     * // "Győzelem! AI nyert!"
+     * // (nincs pontszám, mert AI nem kap pontot)
+     * <p>
+     * // DRAW esetén:
+     * // "Döntetlen!"
+     * // "Pontszám (Kati): 15"
+     * // "Pontszám (János): 10"
      */
     private void handleGameEnd() {
         GameState finalState = gameService.getGameState();
@@ -501,6 +788,46 @@ public class GameController {
         }
     }
 
+    /**
+     * Felajánlja a felhasználónak egy új játék indításának lehetőségét a jelenlegi játék végén.
+     * A metódus a következő feladatokat látja el:
+     * <p>
+     * - Interaktív párbeszédet kezd a felhasználóval egy új játék indításáról
+     * - Feldolgozza a felhasználó válaszát (igen/nem vagy rövidítések)
+     * - Ha a felhasználó igennel válaszol, új GameController példányt hoz létre és indít
+     * - Ha a felhasználó nemmel válaszol, köszönő üzenettel zárul a játék
+     * - Biztosítja a zökkenőmentes átmenetet az aktuális játékból egy új játékba vagy a kilépésbe
+     * <p>
+     * A metódus a következő válaszokat fogadja el:
+     * - Igen: "i", "igen" (kis/nagybetű érzéketlen)
+     * - Nem: "n", "nem" (kis/nagybetű érzéketlen)
+     *
+     * @see GameController#run() A játék fő futtatási ciklusát végző metódus
+     * @see GameController#GameController() Az új játékvezérlő konstruktora
+     *
+     * @implNote A metódus egy egyszerű kérdés-felelet alapú interakciót valósít meg.
+     *           Új játék indításakor a rendszer létrehoz egy teljesen új GameController
+     *           példányt, ami biztosítja a teljes állapot resetelését és a tiszta kezdést.
+     *           Ez a megoldás előnyösebb, mint az aktuális controller állapotának
+     *           alaphelyzetbe állítása, mivel elkerüli a maradék állapotproblémákat.
+     *
+     * @implSpec A metódus nem végez komplex érvényesítést a felhasználói bemeneten,
+     *           csupán az alapvető igen/nem válaszokat fogadja el. Érvénytelen válasz
+     *           esetén a metódus nem kérdezi újra, hanem kilép a játékból.
+     *
+     * @example
+     * // Példa interakció:
+     * // "Szeretnél új játékot kezdeni? (i/n): i"
+     * // Új játék indítása... (a GameController.run() meghívódik)
+     * <p>
+     * // Vagy:
+     * // "Szeretnél új játékot kezdeni? (i/n): n"
+     * // "Köszönöm, hogy játszottál!"
+     * <p>
+     * // Vagy érvénytelen válasz esetén:
+     * // "Szeretnél új játékot kezdeni? (i/n): talán"
+     * // "Köszönöm, hogy játszottál!" (alapértelmezett nem válasz)
+     */
     private void offerNewGame() {
         System.out.print("\nSzeretnél új játékot kezdeni? (i/n): ");
         String response = scanner.nextLine().trim().toLowerCase();
@@ -563,6 +890,50 @@ public class GameController {
         return true;
     }
 
+    /**
+     * Bekéri és beállítja a játékosok neveit a kiválasztott játékmódnak megfelelően.
+     * A metódus a következő feladatokat látja el:
+     * <p>
+     * - A játékmód alapján meghatározza, hány játékos nevét kell bekérni
+     * - HUMAN_VS_HUMAN esetén két játékos nevét kéri be
+     * - HUMAN_VS_AI esetén csak az emberi játékos nevét kéri be, az AI neve automatikusan "AI" lesz
+     * - Meghívja a getPlayerName() segédmetódust a név bekérésére és validálására
+     * - Beállítja a játékosok neveit a GameService-ben
+     * - Megjeleníti a beállított játékosneveket visszajelzésként
+     * <p>
+     * A metódus biztosítja, hogy a játékosok nevei megfelelően inicializálva legyenek
+     * a játék megkezdése előtt, és hogy a felhasználó lássa, kik fognak játszani.
+     *
+     * @see #getPlayerName(String) A név bekérését és validálását végző segédmetódus
+     * @see GameService#getPlayer1() Az első játékos lekérdezése
+     * @see GameService#getPlayer2() A második játékos lekérdezése
+     * @see Player#setName(String) A játékos nevének beállítása
+     *
+     * @implNote A metódus a játékmódtól függően változtatja a felhasználói interfészt:
+     *           - HUMAN_VS_HUMAN: két külön prompt két játékosnév bekérésére
+     *           - HUMAN_VS_AI: egy prompt az emberi játékos nevének bekérésére
+     *           Az AI játékos neve mindig "AI" és nem változtatható.
+     *
+     * @implSpec A metódus feltételezi, hogy a gameService és a benne lévő játékosok
+     *           már inicializálva vannak a megfelelő játékmód szerint. A metódus
+     *           csak a neveket állítja be, nem változtatja a játékosok típusát.
+     *
+     * @example
+     * // HUMAN_VS_HUMAN esetén:
+     * // "Játékosok:"
+     * // "Első játékos neve: Kati"
+     * // "Második játékos neve: János"
+     * // "Játékosok beállítva:"
+     * // "1. játékos: Kati"
+     * // "2. játékos: János"
+     * <p>
+     * // HUMAN_VS_AI esetén:
+     * // "Játékos:"
+     * // "Add meg a neved: Péter"
+     * // "Játékosok beállítva:"
+     * // "1. játékos: Péter"
+     * // "2. játékos: AI"
+     */
     private void getPlayerNames() {
 
         if (gameService.getGameMode() == GameMode.HUMAN_VS_HUMAN) {

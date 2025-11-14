@@ -133,3 +133,11 @@ A játék célja, hogy két játékos 5 azonos szimbólumot helyezzen el egy sor
           3. Játékosok nevének bekérése
 
           4. Tábla megjelenítése formázott formában
+
+Egyéb a megvalósításra vonatkozó megjegyések:
+
+    copyBoard() metódus az AIPlayer osztályban:
+    -YAGNI (You Ain't Gonna Need It) elv: Jelenleg csak az AI használja, minek bővíteni a Board API-ját?
+    -Szeparáció: Az AI-specifikus logika az AI osztályban marad
+    -Egyszerűség: A Board osztály funkcionalitása tiszta marad
+

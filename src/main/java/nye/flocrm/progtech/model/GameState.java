@@ -15,6 +15,11 @@ public enum GameState {
         this.displayName = displayName;
     }
 
+    /**
+     * Visszaadja a játékállapot szöveges reprezentációját.
+     *
+     * @return a játékállapot leírása
+     */
     @Override
     public String toString() {
         return displayName;

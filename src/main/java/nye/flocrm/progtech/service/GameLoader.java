@@ -7,12 +7,23 @@ import nye.flocrm.progtech.model.GameMode;
 import java.io.*;
 import java.util.Date;
 
+/**
+ * Játékállapot mentését és betöltését végző osztály.
+ * Kezeli a játék adatainak fájlba írását és visszaolvasását.
+ */
 public class GameLoader {
     private static final String SAVE_FILE = "game_save.txt";
 
     public record GameState(Board board, Player player, String timestamp, GameMode gameMode) {
     }
 
+    /**
+     * Betölti a játékállapotot a megadott fájlból.
+     *
+     * @param filename a betöltendő fájl neve
+     * @return a betöltött játékállapot
+     * @throws IOException ha hiba történik a fájl olvasása során
+     */
     public GameState loadGame(String filename) throws IOException {
         File file = new File(filename);
 
@@ -123,6 +134,14 @@ public class GameLoader {
         }
     }
 
+    /**
+     * Elmenti a játék aktuális állapotát fájlba.
+     *
+     * @param board a játéktábla
+     * @param player az aktuális játékos
+     * @param gameMode a játékmód
+     * @throws IOException ha hiba történik a fájl írása során
+     */
     public void saveGame(Board board, Player player, GameMode gameMode) throws IOException {
         try (PrintWriter writer = new PrintWriter(new FileWriter(SAVE_FILE))) {
             // Játékos információk
@@ -160,10 +179,21 @@ public class GameLoader {
         }
     }
 
+    /**
+     * Betölti a játékállapotot az alapértelmezett fájlból.
+     *
+     * @return a betöltött játékállapot
+     * @throws IOException ha hiba történik a fájl olvasása során
+     */
     public GameState loadGame() throws IOException {
         return loadGame(SAVE_FILE);
     }
 
+    /**
+     * Megadja, hogy létezik-e mentett játékállapot.
+     *
+     * @return true ha létezik mentett állapot, egyébként false
+     */
     public boolean saveFileExists() {
         File file = new File(SAVE_FILE);
         return file.exists() && file.length() > 0;

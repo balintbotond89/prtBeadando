@@ -25,7 +25,11 @@ public class WinChecker {
     }
 
     /**
-     * Megadja, hogy egy adott játékos nyert-e
+     * Ellenőrzi, hogy az adott játékos nyert-e a táblán.
+     *
+     * @param board a játéktábla
+     * @param playerSymbol a játékos szimbóluma ('X' vagy 'O')
+     * @return true ha a játékos nyert, egyébként false
      */
     public boolean checkWinForPlayer(Board board, char playerSymbol) {
         for (int row = 0; row < Board.SIZE; row++) {
@@ -39,22 +43,54 @@ public class WinChecker {
         return false;
     }
 
-    // Vízszintes ellenőrzés
+    /**
+     * Vízszintes irányban ellenőrzi a nyerési feltételt.
+     *
+     * @param board a játéktábla
+     * @param row a kezdő sor
+     * @param col a kezdő oszlop
+     * @param symbol az ellenőrzendő szimbólum
+     * @return true ha van nyerő sorozat
+     */
     private boolean checkHorizontal(Board board, int row, int col, char symbol) {
         return countConsecutive(board, row, col, symbol, 0, 1) >= WINNING_LENGTH;
     }
 
-    // Függőleges ellenőrzés
+    /**
+     * Függőleges irányban ellenőrzi a nyerési feltételt.
+     *
+     * @param board a játéktábla
+     * @param row a kezdő sor
+     * @param col a kezdő oszlop
+     * @param symbol az ellenőrzendő szimbólum
+     * @return true ha van nyerő sorozat
+     */
     private boolean checkVertical(Board board, int row, int col, char symbol) {
         return countConsecutive(board, row, col, symbol, 1, 0) >= WINNING_LENGTH;
     }
 
-    // Átlós ellenőrzés
+    /**
+     * Átlós irányban ellenőrzi a nyerési feltételt.
+     *
+     * @param board a játéktábla
+     * @param row a kezdő sor
+     * @param col a kezdő oszlop
+     * @param symbol az ellenőrzendő szimbólum
+     * @return true ha van nyerő sorozat
+     */
     private boolean checkDiagonal(Board board, int row, int col, char symbol) {
         return countConsecutive(board, row, col, symbol, 1, 1) >= WINNING_LENGTH;
     }
 
-    // Fordított átlos ellenőrzés
+    /**
+     * Fordított átlós irányban ellenőrzi a nyerési feltételt.
+     *
+     * @param board a játéktábla
+     * @param row a kezdő sor
+     * @param col a kezdő oszlop
+     * @param symbol az ellenőrzendő szimbólum
+     * @return true ha van nyerő sorozat
+     */
     private boolean checkAntiDiagonal(Board board, int row, int col, char symbol) {
         return countConsecutive(board, row, col, symbol, 1, -1) >= WINNING_LENGTH;
     }

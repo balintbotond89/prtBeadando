@@ -24,7 +24,11 @@ public final class Board {
         clear();
     }
 
-    // Getter a Board méretét adja vissza
+    /**
+     * Visszaadja a tábla méretét.
+     *
+     * @return a tábla mérete
+     */
     public int getSize() {
         return SIZE;
     }
@@ -90,6 +94,9 @@ public final class Board {
         printGrid();
     }
 
+    /**
+     * Kiírja a tábla fejlécét.
+     */
     private void printHeader() {
         System.out.print("   ");
         for (int c = 0; c < SIZE; c++) {
@@ -98,6 +105,9 @@ public final class Board {
         System.out.println();
     }
 
+    /**
+     * Kiírja a tábla rácsszerkezetét.
+     */
     private void printGrid() {
         for (int r = 0; r < SIZE; r++) {
             printHorizontalLine();
@@ -106,8 +116,9 @@ public final class Board {
         printHorizontalLine();
     }
 
+
     /**
-     * Segédfüggvény a printHeader függvényhez.
+     * Kií egy vízszintes vonalat a tábla megjelenítéséhez. Segédfüggvény printGrid()
      */
     private void printHorizontalLine() {
         System.out.print("  +");
@@ -118,7 +129,9 @@ public final class Board {
     }
 
     /**
-     * Segédfüggvény a printHeader függvényhez.
+     * Kiírja a tábla egy sorát. Segédfüggvény printGrid()
+     *
+     * @param row a sor indexe
      */
     private void printRow(int row) {
         System.out.printf("%2d|", row + 1);

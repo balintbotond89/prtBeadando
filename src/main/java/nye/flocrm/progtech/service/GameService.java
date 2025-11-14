@@ -20,6 +20,19 @@ public class GameService {
     private Player player2;
     private final GameMode gameMode;
 
+    /**
+     * Konstruktor a játék szolgáltatás inicializálásához.
+     * Létrehozza a játék alapvető komponenseit és beállítja a kezdő állapotot.
+     * A konstruktor a következő inicializálásokat végzi el:
+     * - Létrehoz egy új 10x10-es játéktáblát
+     * - Inicializálja a győzelem ellenőrzőt
+     * - Beállítja a játék kezdő állapotát "Folyamatban" értékre
+     * - Eltárolja a kiválasztott játékmódot
+     * - Inicializálja a játékosokat a játékmódnak megfelelően
+     *
+     * @param gameMode a játékmód, amely meghatározza a játékosok típusát
+     *                 (ember vs. ember vagy ember vs. AI)
+     */
     public GameService(GameMode gameMode) {
         this.board = new Board();
         this.winChecker = new WinChecker();
@@ -28,31 +41,74 @@ public class GameService {
         initializePlayers();
     }
 
-    // Getterek:
+    /**
+     * Visszaadja a játéktáblát.
+     *
+     * @return a játéktábla
+     */
     public Board getBoard() {
         return board;
     }
 
+    /**
+     * Visszaadja a játék aktuális állapotát.
+     *
+     * @return a játékállapot
+     */
     public GameState getGameState() {
         return gameState;
     }
 
+    /**
+     * Visszaadja az aktuális játékost.
+     *
+     * @return az aktuális játékos
+     */
     public Player getCurrentPlayer() {
         return currentPlayer;
     }
 
+    /**
+     * Visszaadja a játékmódot.
+     *
+     * @return a játékmód
+     */
     public GameMode getGameMode() {
         return gameMode;
     }
 
+    /**
+     * Visszaadja az első játékost.
+     *
+     * @return az első játékos
+     */
     public Player getPlayer1() {
         return player1;
     }
 
+    /**
+     * Visszaadja a második játékost.
+     *
+     * @return a második játékos
+     */
     public Player getPlayer2() {
         return player2;
     }
 
+    /**
+     * Inicializálja a játékosokat a kiválasztott játékmód alapján.
+     * A metódus a játékmódnak megfelelően hozza létre a játékos példányokat
+     * és beállítja az alapértelmezett szimbólumokat és neveket.
+     * <p>
+     * A játékmódok szerinti inicializálás:
+     * - HUMAN_VS_HUMAN: két HumanPlayer, "Játékos 1" (X) és "Játékos 2" (O)
+     * - HUMAN_VS_AI: egy HumanPlayer "Ember" (X) és egy AIPlayer "Számítógép" (O)
+     * <p>
+     * Az első játékos mindig az 'X' szimbólumot kapja, és ő kezd.
+     * A metódus utolsó lépésében beállítja az aktuális játékost az első játékosra.
+     *
+     * @throws IllegalArgumentException ha ismeretlen játékmódot kap paraméterként
+     */
     private void initializePlayers() {
         switch (gameMode) {
             case HUMAN_VS_HUMAN:
@@ -144,6 +200,10 @@ public class GameService {
         System.out.println("Játék állapot: " + stateDisplay);
     }
 
+    /**
+     * Ellenőrzi, hogy van-e győztes vagy döntetlen.
+     * Frissíti a játék állapotát az ellenőrzés eredménye alapján.
+     */
     public void checkForWinner() {
         if (winChecker.checkWinForPlayer(board, 'X')) {
             gameState = GameState.PLAYER_X_WON;

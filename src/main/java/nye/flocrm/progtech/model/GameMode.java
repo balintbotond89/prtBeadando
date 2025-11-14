@@ -13,10 +13,20 @@ public enum GameMode {
         this.displayName = displayName;
     }
 
+    /**
+     * Visszaadja a játékmód megjelenítendő nevét.
+     *
+     * @return a megjelenítendő név
+     */
     public String getDisplayName() {
         return displayName;
     }
 
+    /**
+     * Visszaadja a játékmód szöveges reprezentációját.
+     *
+     * @return a játékmód neve
+     */
     @Override
     public String toString() {
         return displayName;
