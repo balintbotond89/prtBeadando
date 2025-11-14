@@ -27,10 +27,9 @@ public class GameController {
         this.gameLoader = new GameLoader();
         this.databaseService = new DatabaseService();
 
-        // Adatbázis kapcsolat tesztelése indításkor
-        if (!databaseService.testConnection()) {
+        // Kapcsolat ellenőrzése az adatbázissal:
+        if (databaseService.isConnectionAvailable()) {
             System.out.println("Figyelmeztetés: Nem sikerült csatlakozni az adatbázishoz!");
-            System.out.println("A ranglista funkció nem lesz elérhető.");
         }
     }
 
@@ -58,7 +57,7 @@ public class GameController {
             switch (choice) {
                 case 1:
                     startNewGame();
-                    break;  // ne return, csak break
+                    break;
                 case 2:
                     loadGame();
                     break;
@@ -93,7 +92,7 @@ public class GameController {
     private void showRanking() {
         System.out.println("\n=== RANGLISTA (Top 5) ===");
 
-        if (!databaseService.testConnection()) {
+        if (databaseService.isConnectionAvailable()) {
             System.out.println("Hiba: Nem sikerült csatlakozni az adatbázishoz!");
             System.out.println("Kérlek ellenőrizd az adatbázis kapcsolat beállításait.");
             System.out.println("\nNyomj Enter-t a folytatáshoz...");
@@ -446,13 +445,27 @@ public class GameController {
     }
 
     private void getPlayerNames() {
-        System.out.println("\nJátékosok: ");
-        String player1Name = getPlayerName("első");
-        gameService.getPlayer1().setName(player1Name);
 
         if (gameService.getGameMode() == GameMode.HUMAN_VS_HUMAN) {
-            String player2Name = getPlayerName("második");
+            System.out.println("\nJátékosok:");
+        } else if (gameService.getGameMode() == GameMode.HUMAN_VS_AI) {
+            System.out.println("\nJátékos:");
+        }
+
+        if (gameService.getGameMode() == GameMode.HUMAN_VS_HUMAN) {
+
+            String player1Name = getPlayerName("Első játékos neve");
+            gameService.getPlayer1().setName(player1Name);
+
+            String player2Name = getPlayerName("Második játékos neve");
             gameService.getPlayer2().setName(player2Name);
+
+        } else if (gameService.getGameMode() == GameMode.HUMAN_VS_AI) {
+
+            String player1Name = getPlayerName("Add meg a neved");
+            gameService.getPlayer1().setName(player1Name);
+
+            gameService.getPlayer2().setName("AI");
         }
 
         System.out.println("\nJátékosok beállítva:");
@@ -461,9 +474,11 @@ public class GameController {
         System.out.println();
     }
 
-    private String getPlayerName(String playerNumber) {
+    private String getPlayerName(String prompt) {
         while (true) {
-            System.out.print(playerNumber + " játékos neve: ");
+
+            System.out.print(prompt + ": ");
+
             String name = scanner.nextLine().trim();
 
             if (name.isEmpty()) {

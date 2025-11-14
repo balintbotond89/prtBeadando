@@ -21,10 +21,7 @@ public class HumanPlayer implements Player {
 
     @Override
     public void setName(String name) {
-        if (name != null && !name.trim().isEmpty()) {
             this.name = name.trim();
-        }
-        // Ha üres a név, marad a régi név
     }
 
     @Override

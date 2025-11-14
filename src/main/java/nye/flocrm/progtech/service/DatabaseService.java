@@ -86,14 +86,15 @@ public class DatabaseService {
     }
 
     /**
-     * Adatbázis kapcsolat tesztelése
+     * Ellenőrzi, hogy az adatbázis kapcsolat elérhető-e
+     * @return true ha az adatbázis elérhető, false egyébként
      */
-    public boolean testConnection() {
+    public boolean isConnectionAvailable() {
         try (Connection conn = getConnection()) {
-            return conn.isValid(2);
+            return !conn.isValid(2);
         } catch (SQLException e) {
             LoggerService.warning("Adatbázis kapcsolat hiba: " + e.getMessage());
-            return false;
+            return true;
         }
     }
 }
