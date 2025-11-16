@@ -1,17 +1,18 @@
 package nye.flocrm.progtech.ui;
 
-import java.util.Scanner;
 import java.io.File;
 import java.util.List;
+import java.util.Scanner;
+
 import nye.flocrm.progtech.model.Board;
 import nye.flocrm.progtech.model.GameMode;
 import nye.flocrm.progtech.model.GameState;
-import nye.flocrm.progtech.model.Player;
 import nye.flocrm.progtech.model.HumanPlayer;
-import nye.flocrm.progtech.service.GameService;
-import nye.flocrm.progtech.service.GameLoader;
-import nye.flocrm.progtech.service.LoggerService;
+import nye.flocrm.progtech.model.Player;
 import nye.flocrm.progtech.service.DatabaseService;
+import nye.flocrm.progtech.service.GameLoader;
+import nye.flocrm.progtech.service.GameService;
+import nye.flocrm.progtech.service.LoggerService;
 
 /**
  * A játék vezérléséért felelős osztály.
@@ -675,7 +676,6 @@ public class GameController {
                     continue;
                 }
 
-
                 // Opciók kezelése
                 case "m", "mentés" -> {
                     try {
@@ -694,6 +694,9 @@ public class GameController {
                     offerSaveGame();
                     return;
                 }
+                default -> {
+                    // Alapértelmezett eset: lépés feldolgozása
+                }
             }
 
             // Lépés feldolgozása
@@ -704,7 +707,6 @@ public class GameController {
                 gameService.makeAIMove();
             }
         }
-
         handleGameEnd();
         offerNewGame();
     }

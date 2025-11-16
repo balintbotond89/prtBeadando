@@ -1,11 +1,17 @@
 package nye.flocrm.progtech.service;
 
-import nye.flocrm.progtech.model.Player;
-import nye.flocrm.progtech.model.Board;
-import nye.flocrm.progtech.model.HumanPlayer;
-import nye.flocrm.progtech.model.GameMode;
-import java.io.*;
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileReader;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.io.PrintWriter;
 import java.util.Date;
+
+import nye.flocrm.progtech.model.Board;
+import nye.flocrm.progtech.model.GameMode;
+import nye.flocrm.progtech.model.HumanPlayer;
+import nye.flocrm.progtech.model.Player;
 
 /**
  * Játékállapot mentését és betöltését végző osztály.
@@ -84,6 +90,16 @@ public class GameLoader {
         } catch (IllegalArgumentException e) {
             throw new IOException("Érvénytelen játékmód a fájlban.", e);
         }
+    }
+
+    /**
+     * Betölti a játékállapotot az alapértelmezett fájlból.
+     *
+     * @return a betöltött játékállapot
+     * @throws IOException ha hiba történik a fájl olvasása során
+     */
+    public GameState loadGame() throws IOException {
+        return loadGame(SAVE_FILE);
     }
 
     /**
@@ -177,16 +193,6 @@ public class GameLoader {
                 writer.println("|");
             }
         }
-    }
-
-    /**
-     * Betölti a játékállapotot az alapértelmezett fájlból.
-     *
-     * @return a betöltött játékállapot
-     * @throws IOException ha hiba történik a fájl olvasása során
-     */
-    public GameState loadGame() throws IOException {
-        return loadGame(SAVE_FILE);
     }
 
     /**
