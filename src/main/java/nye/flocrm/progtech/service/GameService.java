@@ -34,6 +34,9 @@ public class GameService {
      *                 (ember vs. ember vagy ember vs. AI)
      */
     public GameService(GameMode gameMode) {
+        if (gameMode == null) {
+            throw new IllegalArgumentException("A játékmód nem lehet null");
+        }
         this.board = new Board();
         this.winChecker = new WinChecker();
         this.gameState = GameState.IN_PROGRESS;

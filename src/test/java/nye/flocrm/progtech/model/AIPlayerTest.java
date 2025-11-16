@@ -6,7 +6,6 @@ import org.junit.jupiter.api.Test;
 import static org.junit.jupiter.api.Assertions.*;
 
 public class AIPlayerTest {
-
     private AIPlayer aiPlayer;
     private Board board;
 
@@ -20,7 +19,6 @@ public class AIPlayerTest {
     @DisplayName("Az AIPlayer létrehozása helyes adatokkal")
     void testAIPlayerCreation() {
         // AMIKOR - AIPlayer létrejön
-
         // AKKOR - helyes adatokkal rendelkezik
         assertEquals("AI Player", aiPlayer.getName());
         assertEquals('O', aiPlayer.getSymbol());
@@ -54,7 +52,6 @@ public class AIPlayerTest {
         // AMIKOR
         String originalName = aiPlayer.getName();
         aiPlayer.setName("Új Név");
-
         // AKKOR
         assertEquals(originalName, aiPlayer.getName());
     }
@@ -64,7 +61,6 @@ public class AIPlayerTest {
     void testMakeMovePlacesSymbol() {
         // AMIKOR
         aiPlayer.makeMove(board);
-
         // AKKOR - ellenőrizzük, hogy valamelyik cellában 'O' van
         boolean foundSymbol = false;
         for (int row = 0; row < Board.SIZE; row++) {
@@ -85,10 +81,8 @@ public class AIPlayerTest {
         board.placeSymbol(0, 0, 'X');
         board.placeSymbol(0, 1, 'X');
         board.placeSymbol(1, 0, 'X');
-
         // AMIT
         aiPlayer.makeMove(board);
-
         // AKKOR - az AI nem léphet foglalt cellába
         assertEquals('X', board.getSymbolAt(0, 0));
         assertEquals('X', board.getSymbolAt(0, 1));
@@ -101,7 +95,6 @@ public class AIPlayerTest {
     void testAIPlayerWithDifferentSymbols() {
         // AMIKOR
         AIPlayer aiPlayerX = new AIPlayer("AI X", 'X', 'O');
-
         // AKKOR
         assertEquals('X', aiPlayerX.getSymbol());
         assertEquals("AI X", aiPlayerX.getName());
@@ -111,7 +104,6 @@ public class AIPlayerTest {
     @DisplayName("A makeMove() metódus nem dob kivételt üres táblán")
     void testMakeMoveOnEmptyBoard() {
         // AMIKOR - üres tábla
-
         // AMIT & AKKOR - nem dob kivételt
         assertDoesNotThrow(() -> aiPlayer.makeMove(board));
     }
@@ -127,11 +119,49 @@ public class AIPlayerTest {
                 }
             }
         }
-
         // AMIT & AKKOR - nem dob kivételt
         assertDoesNotThrow(() -> aiPlayer.makeMove(board));
-
         // AKKOR - az AI az egyetlen üres cellába lépett
         assertEquals('O', board.getSymbolAt(9, 9));
+    }
+
+    @Test
+    @DisplayName("Az AI nyerő lépést tesz, ha lehetősége van rá (1. prioritás)")
+    void testMakeMoveWinsIfPossible() {
+        // AMIKOR - 4 'O' egy sorban
+        board.placeSymbol(5, 1, 'O');
+        board.placeSymbol(5, 2, 'O');
+        board.placeSymbol(5, 3, 'O');
+        board.placeSymbol(5, 4, 'O');
+        // Ellenfelek is léptek máshova
+        board.placeSymbol(0, 0, 'X');
+        board.placeSymbol(1, 1, 'X');
+
+        // AMIT
+        aiPlayer.makeMove(board);
+
+        // AKKOR - Az AI-nak a (5, 0) pozícióba kell lépnie, mert azt találja meg először
+        // JAVÍTVA (5,5)-ről (5,0)-ra
+        assertEquals('O', board.getSymbolAt(5, 0), "Az AI-nak a nyerő (5,0) pozícióba kellett volna lépnie.");
+    }
+
+    @Test
+    @DisplayName("Az AI blokkolja az ellenfél nyerő lépését (2. prioritás)")
+    void testMakeMoveBlocksOpponentWin() {
+        // AMIKOR - 4 'X' egy sorban
+        board.placeSymbol(5, 1, 'X');
+        board.placeSymbol(5, 2, 'X');
+        board.placeSymbol(5, 3, 'X');
+        board.placeSymbol(5, 4, 'X');
+        // Nincs azonnali nyerési lehetősége az AI-nak
+        board.placeSymbol(0, 0, 'O');
+        board.placeSymbol(1, 1, 'O');
+
+        // AMIT
+        aiPlayer.makeMove(board);
+
+        // AKKOR - Az AI-nak ('O') a (5, 0) pozícióba kell lépnie a blokkolásért
+        // JAVÍTVA (5,5)-ről (5,0)-ra
+        assertEquals('O', board.getSymbolAt(5, 0), "Az AI-nak az ellenfél nyerő (5,0) pozícióját kellett volna blokkolnia.");
     }
 }
