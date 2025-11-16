@@ -6,8 +6,6 @@ import static org.junit.jupiter.api.Assertions.*;
 
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import java.lang.reflect.Constructor;
-import java.lang.reflect.Modifier;
 
 public class LoggerServiceTest {
 
