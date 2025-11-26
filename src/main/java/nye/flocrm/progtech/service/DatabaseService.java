@@ -126,10 +126,10 @@ public class DatabaseService {
      */
     public boolean isConnectionAvailable() {
         try (Connection conn = getConnection()) {
-            return !conn.isValid(2);
+            return conn.isValid(2);
         } catch (SQLException e) {
             LoggerService.warning("Adatbázis kapcsolat hiba: " + e.getMessage());
-            return true;
+            return false;
         }
     }
 }

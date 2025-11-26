@@ -34,7 +34,7 @@ public class GameController {
         this.databaseService = new DatabaseService();
 
         // Kapcsolat ellenőrzése az adatbázissal:
-        if (databaseService.isConnectionAvailable()) {
+        if (!databaseService.isConnectionAvailable()) {
             System.out.println("Figyelmeztetés: Nem sikerült csatlakozni az adatbázishoz!");
         }
     }
@@ -186,7 +186,7 @@ public class GameController {
 
         System.out.println("A mindenkori legjobb öt játékos és összpontszáma: ");
 
-        if (databaseService.isConnectionAvailable()) {
+        if (!databaseService.isConnectionAvailable()) {
             System.out.println("Hiba: Nem sikerült csatlakozni az adatbázishoz!");
             System.out.println("Kérlek ellenőrizd az adatbázis kapcsolat beállításait.");
             System.out.println("\n---> Nyomj Enter-t a folytatáshoz...");

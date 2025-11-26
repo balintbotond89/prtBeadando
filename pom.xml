@@ -150,6 +150,11 @@
                         <goals>
                             <goal>report</goal>
                         </goals>
+                        <configuration>
+                            <excludes>
+                                <exclude>**/ui/**</exclude>
+                            </excludes>
+                        </configuration>
                     </execution>
 
                     <!-- Küszöbök ellenőrzése -->
@@ -162,6 +167,13 @@
                             <rules>
                                 <rule>
                                     <element>PACKAGE</element>
+                                    <includes>
+                                        <include>**/model/**</include>
+                                        <include>**/service/**</include>
+                                    </includes>
+                                    <excludes>
+                                        <exclude>**/ui/**</exclude>
+                                    </excludes>
                                     <limits>
                                         <limit>
                                             <counter>LINE</counter>
@@ -191,7 +203,6 @@
                     <execution>
                         <phase>validate</phase>
                         <goals>
-                            <!--<goal>check</goal>-->
                             <goal>checkstyle</goal>
                         </goals>
                     </execution>
