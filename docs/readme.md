@@ -140,4 +140,3 @@ Egyéb a megvalósításra vonatkozó megjegyések:
     -YAGNI (You Ain't Gonna Need It) elv: Jelenleg csak az AI használja, minek bővíteni a Board API-ját?
     -Szeparáció: Az AI-specifikus logika az AI osztályban marad
     -Egyszerűség: A Board osztály funkcionalitása tiszta marad
-
