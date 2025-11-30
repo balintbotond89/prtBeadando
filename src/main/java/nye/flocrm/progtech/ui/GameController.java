@@ -35,7 +35,7 @@ public class GameController {
 
         // Kapcsolat ellenőrzése az adatbázissal:
         if (!databaseService.isConnectionAvailable()) {
-            System.out.println("Figyelmeztetés: Nem sikerült csatlakozni az adatbázishoz!");
+            LoggerService.info("Figyelmeztetés: Nem sikerült csatlakozni az adatbázishoz!");
         }
     }
 
@@ -55,8 +55,8 @@ public class GameController {
      * @see #showMainMenu() A főmenü megjelenítését és kezelését végző metódus
      */
     public void run() {
-        System.out.println("Isten hozott az amőba játékban!");
-        System.out.println("Rakj le 5 jelet egy sorban a győzelemhez!\n");
+        System.out.println("\nIsten hozott az amőba játékban!\n");
+        System.out.println("Rakj le 5 jelet egy sorban a győzelemhez!");
 
         showMainMenu();
 
