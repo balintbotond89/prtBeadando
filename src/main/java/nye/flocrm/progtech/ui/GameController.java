@@ -757,21 +757,35 @@ public class GameController {
 
         switch (finalState) {
             case PLAYER_X_WON:
-                System.out.println("Győzelem! " + gameService.getPlayer1().getName() + " nyert!");
-                if (gameService.getPlayer1() instanceof HumanPlayer humanPlayer) {
+                Player winnerX = gameService.getPlayer1();
+
+                if (winnerX instanceof HumanPlayer humanPlayer) {
+                    // Ember nyert
+                    System.out.println("Győzelem! " + humanPlayer.getName() + " nyert!");
                     humanPlayer.addScore(10);
                     databaseService.saveScore(humanPlayer.getName(), 10);
                     System.out.println("Pontszám: " + humanPlayer.getScore());
+                } else {
+                    // AI nyert
+                    System.out.println("Vereség! " + winnerX.getName() + " nyert!");
                 }
                 break;
+
             case PLAYER_O_WON:
-                System.out.println("Győzelem! " + gameService.getPlayer2().getName() + " nyert!");
-                if (gameService.getPlayer2() instanceof HumanPlayer humanPlayer) {
+                Player winnerO = gameService.getPlayer2();
+
+                if (winnerO instanceof HumanPlayer humanPlayer) {
+                    // Ember nyert
+                    System.out.println("Győzelem! " + humanPlayer.getName() + " nyert!");
                     humanPlayer.addScore(10);
                     databaseService.saveScore(humanPlayer.getName(), 10);
                     System.out.println("Pontszám: " + humanPlayer.getScore());
+                } else {
+                    // AI nyert
+                    System.out.println("Vereség! " + winnerO.getName() + " nyert!");
                 }
                 break;
+
             case DRAW:
                 System.out.println("Döntetlen!");
                 if (gameService.getPlayer1() instanceof HumanPlayer humanPlayer1) {
@@ -785,6 +799,7 @@ public class GameController {
                     System.out.println("Pontszám (" + humanPlayer2.getName() + "): " + humanPlayer2.getScore());
                 }
                 break;
+
             default:
                 System.out.println("Játék megszakítva.");
         }
