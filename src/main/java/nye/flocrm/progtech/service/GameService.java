@@ -99,6 +99,17 @@ public class GameService {
     }
 
     /**
+     * Az aktuális játékost a szimbóluma alapján állítja be.
+     */
+    public void setCurrentPlayerBySymbol(char symbol) {
+        if (player1.getSymbol() == symbol) {
+            currentPlayer = player1;
+        } else if (player2.getSymbol() == symbol) {
+            currentPlayer = player2;
+        }
+    }
+
+    /**
      * Inicializálja a játékosokat a kiválasztott játékmód alapján.
      * A metódus a játékmódnak megfelelően hozza létre a játékos példányokat
      * és beállítja az alapértelmezett szimbólumokat és neveket.

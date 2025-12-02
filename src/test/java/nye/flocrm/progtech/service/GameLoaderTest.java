@@ -20,14 +20,24 @@ public class GameLoaderTest {
 
     private GameLoader gameLoader;
     private Board board;
-    private Player player;
+    private HumanPlayer player1;
+    private HumanPlayer player2;
+    private Player currentPlayer;
     private File tempFile;
 
     @BeforeEach
     void setUp() throws IOException {
         gameLoader = new GameLoader();
         board = new Board();
-        player = new HumanPlayer("Teszt Játékos", 'X');
+
+        // Játékosok
+        player1 = new HumanPlayer("Teszt Játékos 1", 'X');
+        player1.setScore(15);
+
+        player2 = new HumanPlayer("Teszt Játékos 2", 'O');
+        player2.setScore(10);
+
+        currentPlayer = player1;
 
         // Állítsunk be egy alap táblaállapotot
         board.placeSymbol(0, 0, 'X');
@@ -63,7 +73,7 @@ public class GameLoaderTest {
     @DisplayName("A saveFileExists() metódus true-t ad vissza, ha van mentett fájl")
     void testSaveFileExistsWithFile() throws IOException {
         // AMIKOR - mentett fájl létrehozása
-        gameLoader.saveGame(board, player, GameMode.HUMAN_VS_HUMAN);
+        gameLoader.saveGame(board, player1, player2, currentPlayer, GameMode.HUMAN_VS_HUMAN);
 
         // AKKOR
         assertTrue(gameLoader.saveFileExists(), "A mentési fájlnak léteznie kell");
@@ -76,7 +86,7 @@ public class GameLoaderTest {
     @DisplayName("A saveGame() metódus létrehozza a mentési fájlt")
     void testSaveGameCreatesFile() throws IOException {
         // AMIKOR - játék mentése
-        gameLoader.saveGame(board, player, GameMode.HUMAN_VS_HUMAN);
+        gameLoader.saveGame(board, player1, player2, currentPlayer, GameMode.HUMAN_VS_HUMAN);
 
         // AKKOR - fájl létezik és nem üres
         File file = new File("game_save.txt");
@@ -91,28 +101,43 @@ public class GameLoaderTest {
     @DisplayName("A saveGame() metódus nem dob kivételt érvényes paraméterekkel")
     void testSaveGameNoException() {
         // AMIKOR & AKKOR - nem dob kivételt
-        assertDoesNotThrow(() -> gameLoader.saveGame(board, player, GameMode.HUMAN_VS_HUMAN));
+        assertDoesNotThrow(() -> gameLoader.saveGame(board, player1, player2, currentPlayer, GameMode.HUMAN_VS_HUMAN));
 
         // Takarítás
         deleteFileSilently(new File("game_save.txt"));
     }
 
     @Test
-    @DisplayName("A saveGame() metódus helyesen menti a játékos adatait")
+    @DisplayName("A saveGame() metódus helyesen menti a játékosok adatait")
     void testSaveGamePlayerInfo() throws IOException {
         // AMIKOR - játék mentése konkrét adatokkal
-        HumanPlayer testPlayer = new HumanPlayer("Kati", 'X');
-        testPlayer.setScore(25);
-        gameLoader.saveGame(board, testPlayer, GameMode.HUMAN_VS_AI);
+        HumanPlayer p1 = new HumanPlayer("Kati", 'X');
+        p1.setScore(25);
+
+        HumanPlayer p2 = new HumanPlayer("Joci", 'O');
+        p2.setScore(5);
+
+        // Tegyük fel, hogy épp játékos 2 következik
+        gameLoader.saveGame(board, p1, p2, (Player) p2, GameMode.HUMAN_VS_AI);
 
         // AKKOR - fájl tartalma ellenőrzése
         File file = new File("game_save.txt");
         String content = Files.readString(file.toPath());
 
-        assertTrue(content.contains("Játékos: Kati"), "A fájlnak tartalmaznia kell a játékos nevét");
-        assertTrue(content.contains("Pontszám: 25"), "A fájlnak tartalmaznia kell a pontszámot");
-        assertTrue(content.contains("Szimbólum: X"), "A fájlnak tartalmaznia kell a szimbólumot");
-        assertTrue(content.contains("Játékmód: HUMAN_VS_AI"), "A fájlnak tartalmaznia kell a játékmódot");
+        assertTrue(content.contains("Első játékos: Kati"),
+                "A fájlnak tartalmaznia kell az első játékos nevét");
+        assertTrue(content.contains("Első játékos pontszám: 25"),
+                "A fájlnak tartalmaznia kell az első játékos pontszámát");
+
+        assertTrue(content.contains("Második játékos: Joci"),
+                "A fájlnak tartalmaznia kell a második játékos nevét");
+        assertTrue(content.contains("Második játékos pontszám: 5"),
+                "A fájlnak tartalmaznia kell a második játékos pontszámát");
+
+        assertTrue(content.contains("Következő: O"),
+                "A fájlnak tartalmaznia kell a soron következő játékos szimbólumát");
+        assertTrue(content.contains("Játékmód: HUMAN_VS_AI"),
+                "A fájlnak tartalmaznia kell a játékmódot");
 
         // Takarítás
         deleteFileSilently(file);
@@ -127,7 +152,7 @@ public class GameLoaderTest {
         testBoard.placeSymbol(1, 1, 'O');
         testBoard.placeSymbol(4, 4, 'X');
 
-        gameLoader.saveGame(testBoard, player, GameMode.HUMAN_VS_HUMAN);
+        gameLoader.saveGame(board, player1, player2, currentPlayer, GameMode.HUMAN_VS_HUMAN);
 
         // AKKOR - fájl tartalma ellenőrzése
         File file = new File("game_save.txt");
@@ -176,7 +201,7 @@ public class GameLoaderTest {
     @Test
     @DisplayName("A loadGame() metódus helyesen betölt egy érvényes mentési fájlt")
     void testLoadGameValidFile() throws IOException {
-        // AMIKOR - érvényes mentési fájl létrehozása
+        // AMIKOR - érvényes mentési fájl létrehozása az ÚJ formátummal
         createValidSaveFile(tempFile);
 
         // AMIT
@@ -185,8 +210,8 @@ public class GameLoaderTest {
         // AKKOR
         assertNotNull(loadedState, "A betöltött állapot nem lehet null");
         assertNotNull(loadedState.board(), "A tábla nem lehet null");
-        assertNotNull(loadedState.player(), "A játékos nem lehet null");
-        assertEquals(GameMode.HUMAN_VS_HUMAN, loadedState.gameMode(), "A játékmódnak HUMAN_VS_HUMAN-nek kell lennie");
+        assertEquals(GameMode.HUMAN_VS_HUMAN, loadedState.gameMode(),
+                "A játékmódnak HUMAN_VS_HUMAN-nek kell lennie");
 
         // Tábla állapot ellenőrzése
         Board loadedBoard = loadedState.board();
@@ -194,23 +219,31 @@ public class GameLoaderTest {
         assertEquals('O', loadedBoard.getSymbolAt(1, 1), "1,1 pozíción O-nak kell lennie");
         assertEquals('.', loadedBoard.getSymbolAt(2, 0), "2,0 pozíción üresnek kell lennie");
 
-        // Játékos adatok ellenőrzése
-        Player loadedPlayer = loadedState.player();
-        assertEquals("Teszt Játékos", loadedPlayer.getName(), "A játékos nevének egyeznie kell");
-        assertEquals('X', loadedPlayer.getSymbol(), "A játékos szimbólumának X-nek kell lennie");
+        // Játékos adatok ellenőrzése – az ÚJ mezőkön
+        assertEquals("Teszt Játékos 1", loadedState.player1Name(),
+                "Az első játékos nevének egyeznie kell");
+        assertEquals("Teszt Játékos 2", loadedState.player2Name(),
+                "A második játékos nevének egyeznie kell");
+
+        assertEquals(15, loadedState.player1Score(),
+                "Az első játékos pontszámának 15-nek kell lennie");
+        assertEquals(10, loadedState.player2Score(),
+                "A második játékos pontszámának 10-nek kell lennie");
     }
 
     @Test
-    @DisplayName("A loadGame() metódus kezeli az AIPlayer mentést HumanPlayer-ként")
+    @DisplayName("A loadGame() metódus kezeli, ha a második játékos AI névvel szerepel")
     void testLoadGameWithAIPlayer() throws IOException {
-        // AMIKOR - fájl létrehozása AI játékossal (de a loader HumanPlayer-ként tölti be)
+        // AMIKOR - fájl létrehozása AI nevű második játékossal az ÚJ formátumban
         try (java.io.PrintWriter writer = new java.io.PrintWriter(new FileWriter(tempFile))) {
-            writer.println("Játékos: AI");
-            writer.println("Pontszám: 0");
-            writer.println("Dátum: " + new java.util.Date());
-            writer.println("Szimbólum: O");
+            writer.println("Első játékos: Ember");
+            writer.println("Első játékos pontszám: 0");
+            writer.println("Második játékos: AI");
+            writer.println("Második játékos pontszám: 0");
+            writer.println("Következő: O");
             writer.println("Játékmód: HUMAN_VS_AI");
             writer.println("Tábla mérete: 10");
+            writer.println("Dátum: " + new java.util.Date());
             writer.println();
             writer.println("| Sor\\Oszlop | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10 |");
             for (int row = 0; row < 10; row++) {
@@ -227,8 +260,14 @@ public class GameLoaderTest {
 
         // AKKOR
         assertNotNull(loadedState, "A betöltött állapot nem lehet null");
-        assertInstanceOf(HumanPlayer.class, loadedState.player(), "A játékosnak HumanPlayer típusúnak kell lennie");
-        assertEquals("AI", loadedState.player().getName(), "A játékos nevének AI-nak kell lennie");
+        assertEquals("AI", loadedState.player2Name(),
+                "A második játékos nevének AI-nak kell lennie");
+        assertEquals("Ember", loadedState.player1Name(),
+                "Az első játékos neve Ember legyen");
+        assertEquals(GameMode.HUMAN_VS_AI, loadedState.gameMode(),
+                "A játékmódnak HUMAN_VS_AI-nak kell lennie");
+        assertEquals('O', loadedState.nextPlayerSymbol(),
+                "A soron következő játékos szimbólumának O-nak kell lennie");
     }
 
     @Test
@@ -248,14 +287,16 @@ public class GameLoaderTest {
     @Test
     @DisplayName("A loadGame() metódus helyesen dolgozza fel a tábla sorait")
     void testLoadGameBoardProcessing() throws IOException {
-        // AMIKOR - fájl létrehozása konkrét tábla adatokkal
+        // AMIKOR - fájl létrehozása konkrét tábla adatokkal az ÚJ formátumban
         try (java.io.PrintWriter writer = new java.io.PrintWriter(new FileWriter(tempFile))) {
-            writer.println("Játékos: Tábla Teszt");
-            writer.println("Pontszám: 15");
-            writer.println("Dátum: " + new java.util.Date());
-            writer.println("Szimbólum: X");
+            writer.println("Első játékos: Tábla Teszt 1");
+            writer.println("Első játékos pontszám: 15");
+            writer.println("Második játékos: Tábla Teszt 2");
+            writer.println("Második játékos pontszám: 10");
+            writer.println("Következő: X");
             writer.println("Játékmód: HUMAN_VS_HUMAN");
             writer.println("Tábla mérete: 10");
+            writer.println("Dátum: " + new java.util.Date());
             writer.println();
             writer.println("| Sor\\Oszlop | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10 |");
 
@@ -400,23 +441,32 @@ public class GameLoaderTest {
      */
     private void createValidSaveFile(File file) throws IOException {
         try (java.io.PrintWriter writer = new java.io.PrintWriter(new FileWriter(file))) {
-            writer.println("Játékos: Teszt Játékos");
-            writer.println("Pontszám: 15");
-            writer.println("Dátum: " + new java.util.Date());
-            writer.println("Szimbólum: X");
+
+            // ÚJ mezők
+            writer.println("Első játékos: Teszt Játékos 1");
+            writer.println("Első játékos pontszám: 15");
+            writer.println("Második játékos: Teszt Játékos 2");
+            writer.println("Második játékos pontszám: 10");
+            writer.println("Következő: X");
             writer.println("Játékmód: HUMAN_VS_HUMAN");
             writer.println("Tábla mérete: 10");
+            writer.println("Dátum: " + new java.util.Date());
             writer.println();
+
+            // Fejléc
             writer.println("| Sor\\Oszlop | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10 |");
 
+            // Tábla adatok (például X, O, X, O átlóban)
             for (int row = 0; row < 10; row++) {
                 writer.print("| " + (row + 1) + " ");
+
                 for (int col = 0; col < 10; col++) {
                     char symbol = '.';
-                    if (row == 0 && col == 0) symbol = 'X';
-                    if (row == 1 && col == 1) symbol = 'O';
-                    if (row == 2 && col == 2) symbol = 'X';
-                    if (row == 3 && col == 3) symbol = 'O';
+
+                    // Egy kis minta-adat
+                    if (row == col && (row % 2 == 0)) symbol = 'X';
+                    if (row == col && (row % 2 == 1)) symbol = 'O';
+
                     writer.print("| " + symbol + " ");
                 }
                 writer.println("|");

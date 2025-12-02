@@ -247,12 +247,21 @@ public class GameController {
         // Tábla másolása
         copyBoard(gameState.board(), gameService.getBoard());
 
-        // Játékos adatok másolása
-        if (gameState.player() instanceof HumanPlayer savedPlayer) {
-            HumanPlayer currentPlayer = (HumanPlayer) gameService.getPlayer1();
-            currentPlayer.setName(savedPlayer.getName());
-            currentPlayer.setScore(savedPlayer.getScore());
+        // Játékosok visszaállítása
+        Player p1 = gameService.getPlayer1(); // X
+        Player p2 = gameService.getPlayer2(); // O
+
+        if (p1 instanceof HumanPlayer human1) {
+            human1.setName(gameState.player1Name());
+            human1.setScore(gameState.player1Score());
         }
+        if (p2 instanceof HumanPlayer human2) {
+            human2.setName(gameState.player2Name());
+            human2.setScore(gameState.player2Score());
+        }
+
+        // Soron következő játékos beállítása a mentett szimbólum alapján
+        gameService.setCurrentPlayerBySymbol(gameState.nextPlayerSymbol());
 
         // WinChecker állapot frissítése
         gameService.checkForWinner();
@@ -273,7 +282,8 @@ public class GameController {
      * @param gameState a betöltött játékállapot, amelynek információit meg kell jeleníteni
      *                  tartalmazza a játékos adatait, időbélyeget és játékmódot
      *
-     * @see GameLoader.GameState#player() A játékos adatainak lekérdezése
+     * @see GameLoader.GameState#player1Name() Az első játékos adatainak lekérdezése
+     * @see GameLoader.GameState#player2Name() A második játékos adatainak lekérdezése
      * @see GameLoader.GameState#timestamp() A mentés időbélyegének lekérdezése
      * @see GameLoader.GameState#gameMode() A játékmód lekérdezése
      *
@@ -288,13 +298,11 @@ public class GameController {
      * // Pontszám: 15
      */
     private void printGameStateInfo(GameLoader.GameState gameState) {
-        System.out.println("SIKER: Betöltötted " + gameState.player().getName() +
+        System.out.println("SIKER: Betöltötted " + gameState.player2Name() +
                 " játékát (" + gameState.timestamp() + ")");
         System.out.println("Játékmód: " + gameState.gameMode().getDisplayName());
-
-        if (gameState.player() instanceof HumanPlayer humanPlayer) {
-            System.out.println("Pontszám: " + humanPlayer.getScore());
-        }
+        System.out.println("Pontszám (" + gameState.player1Name() + "): " + gameState.player1Score());
+        System.out.println("Pontszám (" + gameState.player2Name() + "): " + gameState.player2Score());
     }
 
     /**
@@ -585,7 +593,7 @@ public class GameController {
      * - Igen: "i", "igen" (kis/nagybetű érzéketlen)
      * - Nem: "n", "nem" (kis/nagybetű érzéketlen)
      *
-     * @see GameLoader#saveGame(Board, Player, GameMode) A játék mentését végző metódus
+     * @see GameLoader#saveGame(Board, Player, Player, Player, GameMode) A játék mentését végző metódus
      * @see LoggerService#warning(String) A figyelmeztető üzenetek naplózását végző metódus
      *
      * @implNote A metódus egy while ciklusban működik, amely addig ismétli a kérdést,
@@ -601,6 +609,8 @@ public class GameController {
                 try {
                     gameLoader.saveGame(
                             gameService.getBoard(),
+                            gameService.getPlayer1(),
+                            gameService.getPlayer2(),
                             gameService.getCurrentPlayer(),
                             gameService.getGameMode()
                     );
@@ -681,6 +691,8 @@ public class GameController {
                     try {
                         gameLoader.saveGame(
                                 gameService.getBoard(),
+                                gameService.getPlayer1(),
+                                gameService.getPlayer2(),
                                 gameService.getCurrentPlayer(),
                                 gameService.getGameMode()
                         );

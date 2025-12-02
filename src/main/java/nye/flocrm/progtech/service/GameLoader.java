@@ -20,8 +20,16 @@ import nye.flocrm.progtech.model.Player;
 public class GameLoader {
     private static final String SAVE_FILE = "game_save.txt";
 
-    public record GameState(Board board, Player player, String timestamp, GameMode gameMode) {
-    }
+    public record GameState(
+            Board board,
+            String player1Name,
+            int player1Score,
+            String player2Name,
+            int player2Score,
+            char nextPlayerSymbol,
+            String timestamp,
+            GameMode gameMode
+    ) {}
 
     /**
      * Betölti a játékállapotot a megadott fájlból.
@@ -39,51 +47,96 @@ public class GameLoader {
 
         try (BufferedReader reader = new BufferedReader(new FileReader(file))) {
             String line;
-            HumanPlayer player = null;
-            Board board;
-            GameMode gameMode = GameMode.HUMAN_VS_AI; // alapértelmezett
+
+            String player1Name = null;
+            int player1Score = 0;
+
+            String player2Name = null;
+            int player2Score = 0;
+
+            char nextSymbol = 'X';
+            GameMode gameMode = GameMode.HUMAN_VS_HUMAN;
             int boardSize = Board.SIZE;
+            String timestamp = null;
 
-            // Fejléc sorok feldolgozása
+            // ==== Fejléc sorok feldolgozása (üres sorig) ====
             while ((line = reader.readLine()) != null && !line.trim().isEmpty()) {
-                if (line.startsWith("Játékos:")) {
-                    String playerName = line.substring(9).trim();
-                    player = new HumanPlayer(playerName, 'X');
-                } else if (line.startsWith("Pontszám:") && player != null) {
-                    int score = Integer.parseInt(line.substring(10).trim());
-                    player.setScore(score);
-                } else if (line.startsWith("Tábla mérete:")) {
-                    boardSize = Integer.parseInt(line.substring(14).trim());
+
+                if (line.startsWith("Első játékos:")) {
+                    player1Name = line.substring("Első játékos:".length()).trim();
+
+                } else if (line.startsWith("Első játékos pontszám:")) {
+                    String txt = line.substring("Első játékos pontszám:".length()).trim();
+                    if (!txt.isEmpty()) {
+                        player1Score = Integer.parseInt(txt);
+                    }
+
+                } else if (line.startsWith("Második játékos:")) {
+                    player2Name = line.substring("Második játékos:".length()).trim();
+
+                } else if (line.startsWith("Második játékos pontszám:")) {
+                    String txt = line.substring("Második játékos pontszám:".length()).trim();
+                    if (!txt.isEmpty()) {
+                        player2Score = Integer.parseInt(txt);
+                    }
+
+                } else if (line.startsWith("Következő:")) {
+                    String txt = line.substring("Következő:".length()).trim();
+                    if (!txt.isEmpty()) {
+                        nextSymbol = txt.charAt(0);
+                    }
+
                 } else if (line.startsWith("Játékmód:")) {
-                    String modeName = line.substring(10).trim();
-                    gameMode = GameMode.valueOf(modeName);
-                }  // Szimbólum információ, de nem változtatjuk meg a konstruktorban beállítottat
+                    String txt = line.substring("Játékmód:".length()).trim();
+                    if (!txt.isEmpty()) {
+                        gameMode = GameMode.valueOf(txt);
+                    }
+
+                } else if (line.startsWith("Tábla mérete:")) {
+                    String txt = line.substring("Tábla mérete:".length()).trim();
+                    if (!txt.isEmpty()) {
+                        boardSize = Integer.parseInt(txt);
+                    }
+
+                } else if (line.startsWith("Dátum:")) {
+                    timestamp = line.substring("Dátum:".length()).trim();
+                }
             }
 
-            if (player == null) {
-                throw new IOException("Hiányzó játékos információ a fájlban.");
+            if (player1Name == null || player2Name == null) {
+                throw new IOException("Hiányzó játékos nevek a fájlban.");
+            }
+            if (timestamp == null) {
+                timestamp = new Date().toString();
             }
 
-            // Tábla létrehozása
-            board = new Board();
-
-            // Tábla adatok beolvasása
+            // ==== Tábla beolvasása ====
+            Board board = new Board();
             String boardLine;
             int row = 0;
+
             while ((boardLine = reader.readLine()) != null && row < boardSize) {
-                // Fejléc sor átugrása
+
                 if (boardLine.startsWith("| Sor\\Oszlop") || boardLine.trim().isEmpty()) {
                     continue;
                 }
 
-                // Tábla sor feldolgozása
                 if (boardLine.contains("|")) {
                     processBoardLine(board, boardLine, row);
                     row++;
                 }
             }
 
-            return new GameState(board, player, new Date().toString(), gameMode);
+            return new GameState(
+                    board,
+                    player1Name,
+                    player1Score,
+                    player2Name,
+                    player2Score,
+                    nextSymbol,
+                    timestamp,
+                    gameMode
+            );
 
         } catch (NumberFormatException e) {
             throw new IOException("Érvénytelen számformátum a fájlban.", e);
@@ -154,26 +207,39 @@ public class GameLoader {
      * Elmenti a játék aktuális állapotát fájlba.
      *
      * @param board a játéktábla
-     * @param player az aktuális játékos
      * @param gameMode a játékmód
      * @throws IOException ha hiba történik a fájl írása során
      */
-    public void saveGame(Board board, Player player, GameMode gameMode) throws IOException {
+    public void saveGame(Board board,
+                         Player player1,
+                         Player player2,
+                         Player currentPlayer,
+                         GameMode gameMode) throws IOException {
         try (PrintWriter writer = new PrintWriter(new FileWriter(SAVE_FILE))) {
-            // Játékos információk
-            writer.println("Játékos: " + player.getName());
-            writer.println("Dátum: " + new Date());
 
-            // Pontszám - csak HumanPlayer esetén
-            int score = 0;
-            if (player instanceof HumanPlayer humanPlayer) {
-                score = humanPlayer.getScore(); // Nincs casting
+            // 1. játékos adatai
+            writer.println("Első játékos: " + player1.getName());
+            int p1Score = 0;
+            if (player1 instanceof HumanPlayer hp1) {
+                p1Score = hp1.getScore();
             }
-            writer.println("Pontszám: " + score);
+            writer.println("Első játékos pontszám: " + p1Score);
 
-            writer.println("Szimbólum: " + player.getSymbol());
+            // 2. játékos adatai
+            writer.println("Második játékos: " + player2.getName());
+            int p2Score = 0;
+            if (player2 instanceof HumanPlayer hp2) {
+                p2Score = hp2.getScore();
+            }
+            writer.println("Második játékos pontszám: " + p2Score);
+
+            // Ki következik?
+            writer.println("Következő: " + currentPlayer.getSymbol());
+
+            // Játékmód, tábla méret, dátum
             writer.println("Játékmód: " + gameMode.name());
             writer.println("Tábla mérete: " + board.getSize());
+            writer.println("Dátum: " + new Date());
             writer.println();
 
             // Tábla fejléce
