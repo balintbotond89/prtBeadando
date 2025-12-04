@@ -10,7 +10,23 @@ public class WinChecker {
     private static final int WINNING_LENGTH = 5;
 
     /**
-     * checkAnyWin Segédfüggvénye
+     * Ellenőrzi, hogy az adott pozícióból kiindulva létrejött-e győztes sorozat.
+     * <p>
+     * A metódus a legutóbb elhelyezett szimbólum (X vagy O) pozíciójából indul ki,
+     * és négy irányban vizsgálja meg, hogy található-e legalább 5 egymást követő,
+     * azonos szimbólumból álló sorozat:
+     * <ul>
+     *     <li>vízszintesen (balról jobbra),</li>
+     *     <li>függőlegesen (felülről lefelé),</li>
+     *     <li>főátló mentén (bal felsőtől jobb alsó felé),</li>
+     *     <li>mellékátló mentén (jobb felsőtől bal alsó felé).</li>
+     * </ul>
+     *
+     * @param board   a játéktábla, amelyen az ellenőrzés történik
+     * @param lastRow a legutóbbi lépés sora (0–9 közötti index)
+     * @param lastCol a legutóbbi lépés oszlopa (0–9 közötti index)
+     * @return {@code true}, ha bármelyik irányban megtalálható egy 5 azonos jelből
+     *         álló sorozat; {@code false} különben
      */
     public boolean checkWin(Board board, int lastRow, int lastCol) {
         char symbol = board.getSymbolAt(lastRow, lastCol);
